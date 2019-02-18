@@ -1,0 +1,1083 @@
+Disassembly Listing for Sec_dict
+Generated From:
+C:/Users/mik216/MPLABXProjects/Sec_dict.X/dist/default/debug/Sec_dict.X.debug.cof
+18-Feb-2019 14:05:48
+
+---  C:/Users/mik216/MPLABXProjects/Sec_dict.X/finger.asm  ----------------------------------------------
+                                                  1:     #include p18f87k22.inc
+                                                  2:     	
+                                                  3:     
+                                                  4:     	    global  byte_reversal
+                                                  5:     	    
+                                                  6:     acs0	udata_acs
+                                                  7:     byte_to_reverse res 1   ; reserve 1 byte for each variable Mul_temp	
+                                                  8:     reversed_byte	res 1
+                                                  9:     byte_counter	res 1
+                                                  10:    
+                                                  11:    finger  code
+                                                  12:    	
+                                                  13:    	
+                                                  14:    ;start	
+                                                  15:    ;	movlw	0x16
+                                                  16:    ;	movwf	byte_to_reverse
+                                                  17:    ;	call	byte_reversal
+                                                  18:    ;	movwf	0x00	    
+                                                  19:    ;	goto	end1
+                                                  20:    ;start	;lfsr	FSR0, 0x300
+                                                  21:    ;	movlw	0x01
+                                                  22:    ;	movwf	0x10
+                                                  23:    ;;	banksel PADCFG1			; PADCFG1 is not in Access Bank!!
+                                                  24:    ;;	bsf	PADCFG1, REPU, BANKED	; PortE pull-ups on
+                                                  25:    ;;	movlb	0x00			; set BSR back to Bank 0
+                                                  26:    ;;	setf	TRISE			; Tri-state PortE (Set as input)
+                                                  27:    ;
+                                                  28:    ;	; setting appropriate address/control lines in PORTD to high
+                                                  29:    	
+                                                  30:    byte_reversal				; uses byte in W and reverses it
+025A  6E00     MOVWF 0x0, ACCESS                  31:    	movwf	byte_to_reverse	
+025C  0E00     MOVLW 0x0                          32:    	movlw	0x00
+025E  6E01     MOVWF 0x1, ACCESS                  33:    	movwf	reversed_byte		; initialize reversed_byte register
+0260  0E08     MOVLW 0x8                          34:    	movlw	0x08			 
+0262  6E02     MOVWF 0x2, ACCESS                  35:    	movwf	byte_counter		; counter to reverse a byte
+0264  0E00     MOVLW 0x0                          36:    	movlw	0x00			; make W 0 again
+0266  EC37     CALL 0x26E, 0                      37:    	call	reversing
+0268  F001     NOP
+026A  5001     MOVF 0x1, W, ACCESS                38:    	movf	reversed_byte, 0, 0		; move reversed byte to W
+026C  0012     RETURN 0                           39:    	return
+                                                  40:    
+                                                  41:    reversing	
+026E  3200     RRCF 0x0, F, ACCESS                42:    	rrcf	byte_to_reverse, 1, 0	    ; rotates the byte to the left and stores in byte_to_reserve
+0270  2201     ADDWFC 0x1, F, ACCESS              43:    	addwfc	reversed_byte, 1, 0	    ; add the least significant bit to 0x00 in reversed byte  
+0272  4601     RLNCF 0x1, F, ACCESS               44:    	rlncf	reversed_byte, 1, 0
+0274  2E02     DECFSZ 0x2, F, ACCESS              45:    	decfsz	byte_counter, 1, 0
+0276  EC37     CALL 0x26E, 0                      46:    	call	reversing
+0278  F001     NOP
+027A  0012     RETURN 0                           47:    	return   
+                                                  48:    ;	
+                                                  49:    
+                                                  50:    	
+027C  EC45     CALL 0x28A, 0                      51:    loop	call SPI_MasterInit
+027E  F001     NOP
+0280  5010     MOVF 0x10, W, ACCESS               52:    	movf	0x10,0, ACCESS
+                                                  53:    	
+0282  EC4B     CALL 0x296, 0                      54:    	call	SPI_MasterTransmit
+0284  F001     NOP
+                                                  55:    	
+                                                  56:    ;	movlw	0xff		    ; counter to delay more than 250 nanosec
+                                                  57:    ;	movwf	0x40
+                                                  58:    ;	call	clock
+                                                  59:    
+                                                  60:    
+                                                  61:    ;	incf 	0x10, 1, ACCESS
+                                                  62:    	
+                                                  63:    ;	movlw 	0xFF
+                                                  64:    ;	cpfsgt 	0x10, ACCESS
+                                                  65:    	;bra 	loop		    ; Not yet finished goto start of loop again
+0286  EC53     CALL 0x2A6, 0                      66:    	call	end1
+0288  F001     NOP
+                                                  67:    
+                                                  68:    SPI_MasterInit ; Set Clock edge to negative
+028A  9C68     BCF SSP2STAT, 6, ACCESS            69:    	bcf	SSP2STAT, CKE	    ; MSSP enable; CKP=1; SPI master, clock=Fosc/64 (1MHz)
+028C  0E32     MOVLW 0x32                         70:    	movlw	(1<<SSPEN)|(1<<CKP)|(0x02)
+028E  6E67     MOVWF SSP2CON1, ACCESS             71:    	movwf	SSP2CON1		    ; SDO2 output; SCK2 output
+0290  9895     BCF TRISD, 4, ACCESS               72:    	bcf	TRISD, SDO2		    ; PORTD4
+0292  9C95     BCF TRISD, 6, ACCESS               73:    	bcf	TRISD, SCK2		    ; PORTD6
+0294  0012     RETURN 0                           74:    	return
+                                                  75:    	
+                                                  76:    SPI_MasterTransmit ; Start transmission of data (held in W)
+0296  6E6A     MOVWF SSP2BUF, ACCESS              77:    	movwf	SSP2BUF
+                                                  78:    Wait_Transmit ; Wait for transmission to complete
+0298  AAA1     BTFSS PIR2, 5, ACCESS              79:    	btfss	PIR2, SSP2IF
+029A  D7FE     BRA 0x298                          80:    	bra	Wait_Transmit
+029C  9AA1     BCF PIR2, 5, ACCESS                81:    	bcf	PIR2, SSP2IF ; clear interrupt flag
+029E  0012     RETURN 0                           82:    	return
+                                                  83:    		
+                                                  84:    	
+                                                  85:    	
+                                                  86:    	
+                                                  87:    	
+                                                  88:    	
+                                                  89:    	
+                                                  90:    	
+                                                  91:    	
+                                                  92:    	
+                                                  93:    	
+                                                  94:    	
+                                                  95:    	
+                                                  96:    	
+                                                  97:    	
+                                                  98:    	
+                                                  99:    	
+                                                  100:   ;	movlw 	0x0	
+                                                  101:   ;	movwf	TRISD, ACCESS	    ; Set all ports in D to 0 but start incrementing only RD0, RD1, RD2, RD3 as 0E1, 0E2, Cp1, Cp2
+                                                  102:   ;	movlw	0x0f
+                                                  103:   ;	movwf	PORTD, ACCESS	
+                                                  104:   	
+                                                  105:   	
+                                                  106:   	
+                                                  107:   	;movwf	PORTD, ACCESS	    
+                                                  108:   ;	bsf	PORTD, 0	    ; Set the specific positions in the ports to 1 (the 4 mentioned above)   ; 0E1
+                                                  109:   ;	bsf	PORTD, 1		; 0E2
+                                                  110:   ;	bsf	PORTD, 2		; CP1
+                                                  111:   ;	bsf	PORTD, 3		; CP2
+                                                  112:   
+                                                  113:   ;	call	write_1			; can't do a read from chip 2 and write to chip one or vice versa at the same time RE: CAN NOW!
+                                                  114:   ;	call	read_1
+                                                  115:   ;	call	write_2
+                                                  116:   ;	call	read_2
+                                                  117:   ;	call	end1
+                                                  118:   ;	
+                                                  119:   ;	; writing a routine for reading data from PORTE 
+                                                  120:   ;	
+                                                  121:   ;read_1	movlw	0x01			    
+                                                  122:   ;	subwf	PORTD,1, ACCESS		; set OE1 to low by substracting 1 from port D
+                                                  123:   ;	movlw	0x0	    
+                                                  124:   ;	movwf	TRISH, ACCESS		; set PORT H to output
+                                                  125:   ;	clrf	PORTH			; clear register PORTE
+                                                  126:   ;	movff	PORTE, PORTH		; output port E into port H 
+                                                  127:   ;	movlw	0x01			
+                                                  128:   ;	addwf	PORTD,1, ACCESS		; set OE1 to high again
+                                                  129:   ;	return
+                                                  130:   ;	
+                                                  131:   ;read_2	movlw	0x02			; same as read 1 but for OE2
+                                                  132:   ;	subwf	PORTD,1, ACCESS
+                                                  133:   ;	movlw	0x0
+                                                  134:   ;	movwf	TRISC, ACCESS
+                                                  135:   ;	clrf	PORTC
+                                                  136:   ;	movff	PORTE, PORTC
+                                                  137:   ;	movlw	0x02
+                                                  138:   ;	addwf	PORTD,1, ACCESS
+                                                  139:   ;	return
+                                                  140:   ;	
+                                                  141:   ;write_1	clrf	TRISE
+                                                  142:   ;	movlw	0x09		    ; input in E
+                                                  143:   ;	movwf	LATE		    ; moved in LAT E
+                                                  144:   ;	movlw	0x04		    ; change CP1 to low
+                                                  145:   ;	subwf	PORTD,1,ACCESS		
+                                                  146:   ;	movlw	0x14		    ; counter to delay more than 250 nanosec
+                                                  147:   ;	movwf	0x40
+                                                  148:   ;	call	clock
+                                                  149:   ;	movlw	0x04
+                                                  150:   ;	addwf	PORTD,1,ACCESS		    ; set clock pulse 1 back to high
+                                                  151:   ;	setf	TRISE		    ; set PORTE as input
+                                                  152:   ;	return
+                                                  153:   ;	
+                                                  154:   ;	
+                                                  155:   ;write_2	clrf	TRISE
+                                                  156:   ;	movlw	0x08		    ; input in E
+                                                  157:   ;	movwf	LATE		    ; moved in LAT E
+                                                  158:   ;	movlw	0x08		    ; change CP2 to low
+                                                  159:   ;	subwf	PORTD,1,ACCESS		
+                                                  160:   ;	movlw	0x14		    ; counter to delay more than 250 nanosec
+                                                  161:   ;	movwf	0x40
+                                                  162:   ;	call	clock
+                                                  163:   ;	movlw	0x08
+                                                  164:   ;	addwf	PORTD,1,ACCESS		    ; set clock pulse 1 back to high
+                                                  165:   ;	setf	TRISE		    ; set PORTE as input
+                                                  166:   ;	return
+                                                  167:   ;	
+                                                  168:   ;	
+02A0  2E40     DECFSZ 0x40, F, ACCESS             169:   clock	decfsz	0x40		    ; decrement the decrement in FR 0x40
+02A2  D7FE     BRA 0x2A0                          170:   	bra	clock
+02A4  0012     RETURN 0                           171:   	return		
+                                                  172:   
+                                                  173:   end1    
+                                                  174:   	end
+                                                  175:   	
+                                                  176:   	
+                                                  177:   	
+                                                  178:   	
+                                                  179:   	
+                                                  180:   	
+                                                  181:   	
+                                                  182:   ;	movlw	0x04
+                                                  183:   ;	movwf	0x30
+                                                  184:   ;	call	delay
+                                                  185:   	
+                                                  186:   	
+                                                  187:   ;	org 0x0
+                                                  188:   ;	goto	start
+                                                  189:   ;	
+                                                  190:   ;	org 0x100		    ; Main code starts here at address 0x100
+                                                  191:   ;	
+                                                  192:   ;start	lfsr	FSR0, 0x300	    ; load address 0x100 into fsr0
+                                                  193:   ;
+                                                  194:   ;	movlw 	0x0	
+                                                  195:   ;	movwf	TRISC, ACCESS	    ; Port C all outputs
+                                                  196:   ;	bra 	test
+                                                  197:   ;loop	movff 	0x06, PORTC
+                                                  198:   ;	movff	0x06, POSTINC0	    ; moves counter into FSR0 address 0x300 onwards (incremented by one successively)
+                                                  199:   ;	movlw	0x04
+                                                  200:   ;	movwf	0x30
+                                                  201:   ;	call	delay		    ; delay routine
+                                                  202:   ;	incf 	0x06, W, ACCESS
+                                                  203:   ;	
+                                                  204:   ;	
+                                                  205:   ;test	movwf	0x06, ACCESS	    ; Test for end of loop condition
+                                                  206:   ;	movlw 	0x1F
+                                                  207:   ;	cpfsgt 	0x06, ACCESS
+                                                  208:   ;	bra 	loop		    ; Not yet finished goto start of loop again
+                                                  209:   ;	goto 	check		    ; Re-run program from start
+                                                  210:    
+                                                  211:   ;delay	movlw	0xF3		    ; initialize .03 in W 
+                                                  212:   ;	movwf	0x40		    ; pass .03 to register 0x40
+                                                  213:   ;	call	delay1
+                                                  214:   ;	decfsz	0x30		    ; decrement the number in FR 0x30
+                                                  215:   ;	bra	delay
+                                                  216:   ;	return	
+                                                  217:   ;
+                                                  218:   ;delay1	decfsz	0x40		    ; decrement the decrement in FR 0x40
+                                                  219:   ;	bra	delay1
+                                                  220:   ;	return
+                                                  221:   
+                                                  222:   ;check	lfsr	FSR1, 0x302	    ; load address 0x100 into fsr1
+                                                  223:   ;	movlw	0x0
+                                                  224:   ;	movwf	TRISD, ACCESS
+                                                  225:   ;	bra	check_test
+                                                  226:   ;
+                                                  227:   ;; subroutine uses FSR1 to go through incrementing numbers and outputs a flashing light in PORTD if different
+                                                  228:   ;check_loop	
+                                                  229:   ;	movf	0x07, W		    ; move counter value in 0x07 into W
+                                                  230:   ;	subwf	INDF1, f	    ; substracts counter value in W from 0x300 and onwards and changes value of 0x300 onwards
+                                                  231:   ;	movff	POSTINC1, PORTD	    ; outputs value in FSR1 to PORTD
+                                                  232:   ;	incf 	0x07, W, ACCESS	    ; counter increments
+                                                  233:   ;	
+                                                  234:   ;check_test
+                                                  235:   ;	movwf	0x07, ACCESS	    ; Test for end of loop condition
+                                                  236:   ;	movlw 	0x1F		    ; counter length
+                                                  237:   ;	cpfsgt 	0x07, ACCESS
+                                                  238:   ;	bra 	check_loop	    ; Not yet finished goto start of loop again
+                                                  239:   ;	goto	0x0		    ; go to start 
+                                                  240:   	
+                                                  241:   	
+                                                  242:   
+                                                  243:   
+                                                  244:    ;   global  LCD_Setup, LCD_Write_Message, LCD_Write_Hex
+                                                  245:   
+                                                  246:   ;acs0    udata_acs   ; named variables in access ram
+                                                  247:   ;LCD_cnt_l   res 1   ; reserve 1 byte for variable LCD_cnt_l
+                                                  248:   ;LCD_cnt_h   res 1   ; reserve 1 byte for variable LCD_cnt_h
+                                                  249:   ;LCD_cnt_ms  res 1   ; reserve 1 byte for ms counter
+                                                  250:   ;LCD_tmp	    res 1   ; reserve 1 byte for temporary use
+                                                  251:   ;LCD_counter res 1   ; reserve 1 byte for counting through nessage
+                                                  252:   ;
+                                                  253:   ;acs_ovr	access_ovr
+                                                  254:   ;LCD_hex_tmp res 1   ; reserve 1 byte for variable LCD_hex_tmp	
+                                                  255:   ;
+                                                  256:   ;	constant    LCD_E=5	; LCD enable bit
+                                                  257:   ;    	constant    LCD_RS=4	; LCD register select bit
+                                                  258:   
+                                                  259:   ;LCD	code
+                                                  260:       
+                                                  261:   ;F_Setup
+                                                  262:   ;	m
+                                                  263:   ;	movlw   b'11000000'	    ; RB0:5 all outputs
+                                                  264:   ;	movwf	TRISB
+                                                  265:   ;	movlw   .40
+                                                  266:   ;	call	LCD_delay_ms	; wait 40ms for LCD to start up properly
+                                                  267:   ;	movlw	b'00110000'	; Function set 4-bit
+                                                  268:   ;	call	LCD_Send_Byte_I
+                                                  269:   ;	movlw	.10		; wait 40us
+                                                  270:   ;	call	LCD_delay_x4us
+                                                  271:   ;	movlw	b'00101000'	; 2 line display 5x8 dot characters
+                                                  272:   ;	call	LCD_Send_Byte_I
+                                                  273:   ;	movlw	.10		; wait 40us
+                                                  274:   ;	call	LCD_delay_x4us
+                                                  275:   ;	movlw	b'00101000'	; repeat, 2 line display 5x8 dot characters
+                                                  276:   ;	call	LCD_Send_Byte_I
+                                                  277:   ;	movlw	.10		; wait 40us
+                                                  278:   ;	call	LCD_delay_x4us
+                                                  279:   ;	movlw	b'00001111'	; display on, cursor on, blinking on
+                                                  280:   ;	call	LCD_Send_Byte_I
+                                                  281:   ;	movlw	.10		; wait 40us
+                                                  282:   ;	call	LCD_delay_x4us
+                                                  283:   ;	movlw	b'00000001'	; display clear
+                                                  284:   ;	call	LCD_Send_Byte_I
+                                                  285:   ;	movlw	.2		; wait 2ms
+                                                  286:   ;	call	LCD_delay_ms
+                                                  287:   ;	movlw	b'00000110'	; entry mode incr by 1 no shift
+                                                  288:   ;	call	LCD_Send_Byte_I
+                                                  289:   ;	movlw	.10		; wait 40us
+                                                  290:   ;	call	LCD_delay_x4us
+                                                  291:   ;	return
+                                                  292:   ;
+                                                  293:   ;LCD_Write_Hex	    ; Writes byte stored in W as hex
+                                                  294:   ;	movwf	LCD_hex_tmp
+                                                  295:   ;	swapf	LCD_hex_tmp,W	; high nibble first
+                                                  296:   ;	call	LCD_Hex_Nib
+                                                  297:   ;	movf	LCD_hex_tmp,W	; then low nibble
+                                                  298:   ;LCD_Hex_Nib	    ; writes low nibble as hex character
+                                                  299:   ;	andlw	0x0F
+                                                  300:   ;	movwf	LCD_tmp
+                                                  301:   ;	movlw	0x0A
+                                                  302:   ;	cpfslt	LCD_tmp
+                                                  303:   ;	addlw	0x07	; number is greater than 9 
+                                                  304:   ;	addlw	0x26
+                                                  305:   ;	addwf	LCD_tmp,W
+                                                  306:   ;	call	LCD_Send_Byte_D ; write out ascii
+                                                  307:   ;	return
+                                                  308:   ;	
+                                                  309:   ;LCD_Write_Message	    ; Message stored at FSR2, length stored in W
+                                                  310:   ;	movwf   LCD_counter
+                                                  311:   ;LCD_Loop_message
+                                                  312:   ;	movf    POSTINC2, W
+                                                  313:   ;	call    LCD_Send_Byte_D
+                                                  314:   ;	decfsz  LCD_counter
+                                                  315:   ;	bra	LCD_Loop_message
+                                                  316:   ;	return
+                                                  317:   ;
+                                                  318:   ;LCD_Send_Byte_I		    ; Transmits byte stored in W to instruction reg
+                                                  319:   ;	movwf   LCD_tmp
+                                                  320:   ;	swapf   LCD_tmp,W   ; swap nibbles, high nibble goes first
+                                                  321:   ;	andlw   0x0f	    ; select just low nibble
+                                                  322:   ;	movwf   LATB	    ; output data bits to LCD
+                                                  323:   ;	bcf	LATB, LCD_RS	; Instruction write clear RS bit
+                                                  324:   ;	call    LCD_Enable  ; Pulse enable Bit 
+                                                  325:   ;	movf	LCD_tmp,W   ; swap nibbles, now do low nibble
+                                                  326:   ;	andlw   0x0f	    ; select just low nibble
+                                                  327:   ;	movwf   LATB	    ; output data bits to LCD
+                                                  328:   ;	bcf	LATB, LCD_RS    ; Instruction write clear RS bit
+                                                  329:   ;        call    LCD_Enable  ; Pulse enable Bit 
+                                                  330:   ;	return
+                                                  331:   ;
+                                                  332:   ;LCD_Send_Byte_D		    ; Transmits byte stored in W to data reg
+                                                  333:   ;	movwf   LCD_tmp
+                                                  334:   ;	swapf   LCD_tmp,W   ; swap nibbles, high nibble goes first
+                                                  335:   ;	andlw   0x0f	    ; select just low nibble
+                                                  336:   ;	movwf   LATB	    ; output data bits to LCD
+                                                  337:   ;	bsf	LATB, LCD_RS	; Data write set RS bit
+                                                  338:   ;	call    LCD_Enable  ; Pulse enable Bit 
+                                                  339:   ;	movf	LCD_tmp,W   ; swap nibbles, now do low nibble
+                                                  340:   ;	andlw   0x0f	    ; select just low nibble
+                                                  341:   ;	movwf   LATB	    ; output data bits to LCD
+                                                  342:   ;	bsf	LATB, LCD_RS    ; Data write set RS bit	    
+                                                  343:   ;        call    LCD_Enable  ; Pulse enable Bit 
+                                                  344:   ;	movlw	.10	    ; delay 40us
+                                                  345:   ;	call	LCD_delay_x4us
+                                                  346:   ;	return
+                                                  347:   ;
+                                                  348:   ;LCD_Enable	    ; pulse enable bit LCD_E for 500ns
+                                                  349:   ;	nop
+                                                  350:   ;	nop
+                                                  351:   ;	nop
+                                                  352:   ;	nop
+                                                  353:   ;	nop
+                                                  354:   ;	nop
+                                                  355:   ;	nop
+                                                  356:   ;	nop
+                                                  357:   ;	bsf	    LATB, LCD_E	    ; Take enable high
+                                                  358:   ;	nop
+                                                  359:   ;	nop
+                                                  360:   ;	nop
+                                                  361:   ;	nop
+                                                  362:   ;	nop
+                                                  363:   ;	nop
+                                                  364:   ;	nop
+                                                  365:   ;	bcf	    LATB, LCD_E	    ; Writes data to LCD
+                                                  366:   ;	return
+                                                  367:   ;    
+                                                  368:   ;; ** a few delay routines below here as LCD timing can be quite critical ****
+                                                  369:   ;LCD_delay_ms		    ; delay given in ms in W
+                                                  370:   ;	movwf	LCD_cnt_ms
+                                                  371:   ;lcdlp2	movlw	.250	    ; 1 ms delay
+                                                  372:   ;	call	LCD_delay_x4us	
+                                                  373:   ;	decfsz	LCD_cnt_ms
+                                                  374:   ;	bra	lcdlp2
+                                                  375:   ;	return
+                                                  376:   ;    
+                                                  377:   ;LCD_delay_x4us		    ; delay given in chunks of 4 microsecond in W
+                                                  378:   ;	movwf	LCD_cnt_l   ; now need to multiply by 16
+                                                  379:   ;	swapf   LCD_cnt_l,F ; swap nibbles
+                                                  380:   ;	movlw	0x0f	    
+                                                  381:   ;	andwf	LCD_cnt_l,W ; move low nibble to W
+                                                  382:   ;	movwf	LCD_cnt_h   ; then to LCD_cnt_h
+                                                  383:   ;	movlw	0xf0	    
+                                                  384:   ;	andwf	LCD_cnt_l,F ; keep high nibble in LCD_cnt_l
+                                                  385:   ;	call	LCD_delay
+                                                  386:   ;	return
+                                                  387:   ;
+                                                  388:   ;LCD_delay			; delay routine	4 instruction loop == 250ns	    
+                                                  389:   ;	movlw 	0x00		; W=0
+                                                  390:   ;lcdlp1	decf 	LCD_cnt_l,F	; no carry when 0x00 -> 0xff
+                                                  391:   ;	subwfb 	LCD_cnt_h,F	; no carry when 0x00 -> 0xff
+                                                  392:   ;	bc 	lcdlp1		; carry, then loop again
+                                                  393:   ;	return			; carry reset so return
+                                                  394:   
+                                                  395:   
+                                                  396:   ;    end
+                                                  397:   
+---  C:/Users/mik216/MPLABXProjects/Sec_dict.X/external_memoy.asm  --------------------------------------
+                                                  1:     #include p18f87k22.inc
+                                                  2:         
+                                                  3:         global  init_chip_s, write_sequence_init, write_sequence, set_cs_high, read_sequence_init, read_sequence 
+                                                  4:         global  SPI_MasterInit, SPI_MasterTransmit, SPI_MasterReceive
+                                                  5:         extern  LCD_delay_ms
+                                                  6:         
+                                                  7:     memory_interface    code
+                                                  8:         
+                                                  9:     init_chip_s
+0006  0EFD     MOVLW 0xFD                         10:    	movlw	b'11111101'		    ; set RE1 tris to low so its the only output
+0008  6E96     MOVWF TRISE, ACCESS                11:    	movwf	TRISE
+000A  0E02     MOVLW 0x2                          12:    	movlw	b'00000010'		    ; set RE1 to high and call a delay
+000C  6E84     MOVWF PORTE, ACCESS                13:    	movwf	PORTE
+000E  0E0A     MOVLW 0xA                          14:    	movlw	.10
+0010  EC09     CALL 0x212, 0                      15:    	call	LCD_delay_ms	
+0012  F001     NOP
+0014  0E00     MOVLW 0x0                          16:    	movlw   0x00	    ; set RE1 to low
+0016  6E84     MOVWF PORTE, ACCESS                17:    	movwf	PORTE
+0018  0012     RETURN 0                           18:    	return
+                                                  19:    
+                                                  20:    ;set_cs_low
+                                                  21:    ;	movlw	b'11111101'		    ; set RE1 tris to low so its the only output
+                                                  22:    ;	movwf	TRISE
+                                                  23:    ;	movlw	0x00			    ; set RE1 to high and call a delay
+                                                  24:    ;	movwf	PORTE	
+                                                  25:    
+                                                  26:    set_cs_high
+001A  0EFD     MOVLW 0xFD                         27:    	movlw	b'11111101'		    ; set RE1 tris to low so its the only output
+001C  6E96     MOVWF TRISE, ACCESS                28:    	movwf	TRISE
+001E  0E02     MOVLW 0x2                          29:    	movlw	b'00000010'		    ; set RE1 to high and call a delay
+0020  6E84     MOVWF PORTE, ACCESS                30:    	movwf	PORTE	
+0022  0012     RETURN 0                           31:    	return
+                                                  32:    	
+                                                  33:    write_sequence_init
+                                                  34:    ;	movlw	b'11011111'		    ; set RC5 tris to low so its the only output
+                                                  35:    ;	movwf	TRISC	
+                                                  36:    ;			; call parallel to serial conversion on port RC5
+                                                  37:    	
+0024  EC03     CALL 0x6, 0                        38:    	call	init_chip_s
+0026  F000     NOP
+0028  0E02     MOVLW 0x2                          39:    	movlw	b'00000010'		    ; set RE1 to high and call a delay
+002A  6E84     MOVWF PORTE, ACCESS                40:    	movwf	PORTE
+                                                  41:    	
+002C  EC4C     CALL 0x98, 0                       42:    	call	SPI_MasterInit
+002E  F000     NOP
+                                                  43:    	
+0030  EC03     CALL 0x6, 0                        44:    	call	init_chip_s
+0032  F000     NOP
+0034  0E06     MOVLW 0x6                          45:    	movlw	b'00000110'		; Set write enable latch opcode to initialize writing into the external memory	
+0036  EC53     CALL 0xA6, 0                       46:    	call	SPI_MasterTransmit	; send serial data
+0038  F000     NOP
+                                                  47:    
+                                                  48:    ;	call	set_cs_high
+                                                  49:    	
+003A  EC03     CALL 0x6, 0                        50:    	call	init_chip_s   
+003C  F000     NOP
+003E  0E02     MOVLW 0x2                          51:    	movlw	b'00000010'		; write sequence starter
+0040  EC53     CALL 0xA6, 0                       52:    	call	SPI_MasterTransmit
+0042  F000     NOP
+                                                  53:    	
+                                                  54:    	
+0044  0E00     MOVLW 0x0                          55:    	movlw	0x00				;call	address where to store this is on memory
+0046  EC53     CALL 0xA6, 0                       56:    	call	SPI_MasterTransmit
+0048  F000     NOP
+004A  0E00     MOVLW 0x0                          57:    	movlw	0x00				
+004C  EC53     CALL 0xA6, 0                       58:    	call	SPI_MasterTransmit
+004E  F000     NOP
+0050  0E00     MOVLW 0x0                          59:    	movlw	0x00				
+0052  EC53     CALL 0xA6, 0                       60:    	call	SPI_MasterTransmit
+0054  F000     NOP
+                                                  61:    	
+0056  0012     RETURN 0                           62:    	return
+                                                  63:    	
+                                                  64:    write_sequence			; assumes a write sequence has been initialized
+0058  0E02     MOVLW 0x2                          65:    	movlw	0x02		; check
+005A  EC53     CALL 0xA6, 0                       66:    	call	SPI_MasterTransmit	; serial it and send it to external memory
+005C  F000     NOP
+                                                  67:    	
+005E  EC0D     CALL 0x1A, 0                       68:    	call	set_cs_high		; terminate the write sequence
+0060  F000     NOP
+0062  0012     RETURN 0                           69:    	return	
+                                                  70:    	
+                                                  71:    read_sequence_init
+                                                  72:    ;	movlw	b'11011111'		    ; set RC5 tris to low so its the only output
+                                                  73:    ;	movwf	TRISC	
+                                                  74:    			; call parallel to serial conversion on port RC5
+0064  EC03     CALL 0x6, 0                        75:    	call	init_chip_s
+0066  F000     NOP
+0068  0E02     MOVLW 0x2                          76:    	movlw	b'00000010'		    ; set RE1 to high and call a delay
+006A  6E84     MOVWF PORTE, ACCESS                77:    	movwf	PORTE
+                                                  78:    			
+                                                  79:    	;call	SPI_MasterInit
+                                                  80:    	
+006C  EC03     CALL 0x6, 0                        81:    	call	init_chip_s
+006E  F000     NOP
+0070  0E03     MOVLW 0x3                          82:    	movlw	b'00000011'		; Set write enable latch opcode to initialize writing into the external memory	
+0072  EC53     CALL 0xA6, 0                       83:    	call	SPI_MasterTransmit	; send serial data i.e. the READ opcode in serial form
+0074  F000     NOP
+                                                  84:    	
+                                                  85:    
+                                                  86:    
+0076  0E00     MOVLW 0x0                          87:    	movlw	0x00				;call	address where to store this is on memory
+0078  EC53     CALL 0xA6, 0                       88:    	call	SPI_MasterTransmit
+007A  F000     NOP
+007C  0E00     MOVLW 0x0                          89:    	movlw	0x00				
+007E  EC53     CALL 0xA6, 0                       90:    	call	SPI_MasterTransmit
+0080  F000     NOP
+0082  0E00     MOVLW 0x0                          91:    	movlw	0x00				
+                                                  92:    
+0084  EC53     CALL 0xA6, 0                       93:    	call	SPI_MasterTransmit
+0086  F000     NOP
+0088  EC58     CALL 0xB0, 0                       94:    	call	SPI_MasterReceive
+008A  F000     NOP
+                                                  95:    ;	call	SPI_MasterInitReceive		; initialize the SPI to read data
+008C  0012     RETURN 0                           96:    	return	
+                                                  97:    
+                                                  98:    read_sequence		    ; assumes the read and read sequence is initialized
+008E  EC58     CALL 0xB0, 0                       99:    	call	SPI_MasterReceive	    ; stores read byte in W
+0090  F000     NOP
+                                                  100:   ;	movwf	0xA10, ACCESS
+                                                  101:   ;	movlw	0x00
+                                                  102:   ;	movwf	TRISH, ACCESS
+                                                  103:   ;	movff	0xA10, PORTH
+0092  EC0D     CALL 0x1A, 0                       104:   	call	set_cs_high		; terminate read
+0094  F000     NOP
+0096  0012     RETURN 0                           105:   	return
+                                                  106:   	
+                                                  107:   SPI_MasterInit ; Set Clock edge to negative
+0098  9CC7     BCF SSP1STAT, 6, ACCESS            108:   	bcf	SSP1STAT, CKE	    ; MSSP enable; CKP=1; SPI master, clock=Fosc/64 (1MHz)
+009A  0E32     MOVLW 0x32                         109:   	movlw	(1<<SSPEN)|(1<<CKP)|(0x02)
+009C  6EC6     MOVWF SSP1CON1, ACCESS             110:   	movwf	SSP1CON1		    ; SDO2 output; SCK2 output
+009E  9A94     BCF TRISC, 5, ACCESS               111:   	bcf	TRISC, SDO1		    ; PORTC5
+00A0  9694     BCF TRISC, 3, ACCESS               112:   	bcf	TRISC, SCK1		    ; PORTC3
+00A2  8894     BSF TRISC, 4, ACCESS               113:   	bsf	TRISC, SDI1		    ; PORTC4	
+00A4  0012     RETURN 0                           114:   	return
+                                                  115:   	
+                                                  116:   SPI_MasterTransmit ; Start transmission of data (held in W)
+00A6  6EC9     MOVWF SSP1BUF, ACCESS              117:   	movwf	SSP1BUF
+                                                  118:   Wait_Transmit ; Wait for transmission to complete
+00A8  A69E     BTFSS PIR1, 3, ACCESS              119:   	btfss	PIR1, SSP1IF
+00AA  D7FE     BRA 0xA8                           120:   	bra	Wait_Transmit
+00AC  969E     BCF PIR1, 3, ACCESS                121:   	bcf	PIR1, SSP1IF ; clear interrupt flag
+00AE  0012     RETURN 0                           122:   	return	
+                                                  123:   
+                                                  124:   	
+                                                  125:   
+                                                  126:   SPI_MasterReceive
+00B0  0E01     MOVLW 0x1                          127:   	movlw	0x01
+00B2  6EC9     MOVWF SSP1BUF, ACCESS              128:   	movwf	SSP1BUF		; receive data transmission
+                                                  129:   ;	movf	SSP1BUF, 0, 0		; receive data transmission in W
+                                                  130:   ;	return
+                                                  131:   Wait_read ; Wait for transmission to complete
+00B4  A69E     BTFSS PIR1, 3, ACCESS              132:   	btfss	PIR1, SSP1IF
+00B6  D7FE     BRA 0xB4                           133:   	bra	Wait_read
+00B8  969E     BCF PIR1, 3, ACCESS                134:   	bcf	PIR1, SSP1IF ; clear interrupt flag
+00BA  0012     RETURN 0                           135:   	return		
+                                                  136:   	
+                                                  137:   	
+                                                  138:       
+                                                  139:       
+                                                  140:       
+                                                  141:       
+                                                  142:       
+                                                  143:       
+                                                  144:       
+                                                  145:       
+                                                  146:       
+                                                  147:       
+                                                  148:       
+                                                  149:       
+                                                  150:       
+                                                  151:       
+                                                  152:       
+                                                  153:       
+                                                  154:       
+                                                  155:       
+                                                  156:       
+                                                  157:       
+                                                  158:       
+                                                  159:       end
+                                                  160:   
+                                                  161:   
+                                                  162:   
+---  C:/Users/mik216/MPLABXProjects/Sec_dict.X/Simple1.asm  ---------------------------------------------
+                                                  1:     #include p18f87k22.inc
+                                                  2:     ;	
+                                                  3:     	extern	byte_reversal, init_chip_s, write_sequence_init, write_sequence, set_cs_high, read_sequence_init, read_sequence
+                                                  4:     	extern	SPI_MasterInit, SPI_MasterTransmit, SPI_MasterReceive
+                                                  5:     ;	global	SPI_MasterInit, SPI_MasterTransmit, Wait_Transmit, SPI_MasterReceive, Wait_read
+                                                  6:     	
+                                                  7:     	code
+                                                  8:     	org 0x0
+0000  EF80     GOTO 0x100                         9:     	goto	start
+0002  F000     NOP
+                                                  10:    ;	
+                                                  11:    	org 0x100		    ; Main code starts here at address 0x100
+                                                  12:    ;	
+                                                  13:    start	;lfsr	FSR0, 0x30
+                                                  14:    ;	movlw	0x11
+                                                  15:    ;	call	byte_reversal
+                                                  16:    ;	movwf	0x00
+                                                  17:    ;	call	write_sequence_init
+0100  D000     BRA 0x102                          18:    	bra	write
+                                                  19:    
+                                                  20:    write
+                                                  21:    	
+0102  0000     NOP                                22:            nop
+0104  0000     NOP                                23:    	nop
+0106  EC12     CALL 0x24, 0                       24:    	call	write_sequence_init
+0108  F000     NOP
+010A  EC2C     CALL 0x58, 0                       25:    	call	write_sequence
+010C  F000     NOP
+                                                  26:    ;	call	read_sequence_init
+                                                  27:    ;	movlw	0x00
+                                                  28:    ;	movwf	TRISH, ACCESS
+                                                  29:    ;	movlw	0x12
+                                                  30:    ;	movwf	PORTH, ACCESS
+                                                  31:    ;	goto	$
+                                                  32:    ;	call	read_sequence
+                                                  33:    ;	goto	$
+                                                  34:    ;	call	read_sequence_init
+                                                  35:    ;	call	read_sequence
+010E  D7F9     BRA 0x102                          36:    	bra	write
+                                                  37:    ;	call	read_sequence_init
+                                                  38:    ;	call	read_sequence
+                                                  39:    
+                                                  40:    ;;	banksel PADCFG1			; PADCFG1 is not in Access Bank!!
+                                                  41:    ;;	bsf	PADCFG1, REPU, BANKED	; PortE pull-ups on
+                                                  42:    ;;	movlb	0x00			; set BSR back to Bank 0
+                                                  43:    ;;	setf	TRISE			; Tri-state PortE (Set as input)
+                                                  44:    ;
+                                                  45:    ;	; setting appropriate address/control lines in PORTD to high
+                                                  46:    ;	
+                                                  47:    ;
+                                                  48:    ;	
+                                                  49:    ;
+                                                  50:    ;	
+                                                  51:    ;loop	call SPI_MasterInit
+                                                  52:    ;	movf	0x10,0, ACCESS
+                                                  53:    ;	
+                                                  54:    ;	;call	SPI_MasterTransmit
+                                                  55:    ;	
+                                                  56:    ;;	movlw	0xff		    ; counter to delay more than 250 nanosec
+                                                  57:    ;;	movwf	0x40
+                                                  58:    ;;	call	clock
+                                                  59:    ;
+                                                  60:    ;
+                                                  61:    ;;	incf 	0x10, 1, ACCESS
+                                                  62:    ;	
+                                                  63:    ;;	movlw 	0xFF
+                                                  64:    ;;	cpfsgt 	0x10, ACCESS
+                                                  65:    ;	;bra 	loop		    ; Not yet finished goto start of loop again
+                                                  66:    ;	call	end1
+                                                  67:    
+                                                  68:    ;SPI_MasterInit ; Set Clock edge to negative
+                                                  69:    ;	bcf	SSP1STAT, CKE	    ; MSSP enable; CKP=1; SPI master, clock=Fosc/64 (1MHz)
+                                                  70:    ;	movlw	(1<<SSPEN)|(1<<CKP)|(0x02)
+                                                  71:    ;	movwf	SSP1CON1		    ; SDO2 output; SCK2 output
+                                                  72:    ;	bcf	TRISC, SDO1		    ; PORTC5
+                                                  73:    ;	bcf	TRISC, SCK1		    ; PORTC3
+                                                  74:    ;	bsf	TRISC, SDI1		    ; PORTC4	
+                                                  75:    ;	return
+                                                  76:    ;	
+                                                  77:    ;SPI_MasterTransmit ; Start transmission of data (held in W)
+                                                  78:    ;	movwf	SSP1BUF
+                                                  79:    ;Wait_Transmit ; Wait for transmission to complete
+                                                  80:    ;	btfss	PIR1, SSP1IF
+                                                  81:    ;	bra	Wait_Transmit
+                                                  82:    ;	bcf	PIR1, SSP1IF ; clear interrupt flag
+                                                  83:    ;	return
+                                                  84:    ;		
+                                                  85:    ;
+                                                  86:    ;;SPI_MasterInitReceive ; Set Clock edge to negative
+                                                  87:    ;;	bcf	SSP1STAT, CKE	    ; MSSP enable; CKP=1; SPI master, clock=Fosc/64 (1MHz)
+                                                  88:    ;;	movlw	(1<<SSPEN)|(1<<CKP)|(0x02)
+                                                  89:    ;;	movwf	SSP1CON1		    ; SDO2 output; SCK2 output
+                                                  90:    ;;	bsf	TRISC, SDI1		    ; PORTC4
+                                                  91:    ;;	bcf	TRISC, SCK1		    ; PORTC3
+                                                  92:    ;;	return
+                                                  93:    ;	
+                                                  94:    ;	
+                                                  95:    ;	
+                                                  96:    ;	
+                                                  97:    ;SPI_MasterReceive
+                                                  98:    ;;	movf	SSP1BUF, 0, 1		; receive data transmission
+                                                  99:    ;	bra	Wait_read
+                                                  100:   ;	movf	SSP1BUF, 0, 0		; receive data transmission in W
+                                                  101:   ;	return
+                                                  102:   ;Wait_read ; Wait for transmission to complete
+                                                  103:   ;	btfss	PIR1, SSP1IF
+                                                  104:   ;	bra	Wait_read
+                                                  105:   ;	bcf	PIR1, SSP1IF ; clear interrupt flag
+                                                  106:   ;	return	
+                                                  107:   ;	
+                                                  108:   
+                                                  109:   ;	
+                                                  110:   ;	
+                                                  111:   ;	
+                                                  112:   ;	
+                                                  113:   ;	
+                                                  114:   ;	
+                                                  115:   ;	
+                                                  116:   ;	
+                                                  117:   ;	
+                                                  118:   ;	
+                                                  119:   ;	
+                                                  120:   ;	
+                                                  121:   ;	
+                                                  122:   ;	
+                                                  123:   ;	
+                                                  124:   ;;	movlw 	0x0	
+                                                  125:   ;;	movwf	TRISD, ACCESS	    ; Set all ports in D to 0 but start incrementing only RD0, RD1, RD2, RD3 as 0E1, 0E2, Cp1, Cp2
+                                                  126:   ;;	movlw	0x0f
+                                                  127:   ;;	movwf	PORTD, ACCESS	
+                                                  128:   ;	
+                                                  129:   ;	
+                                                  130:   ;	
+                                                  131:   ;	;movwf	PORTD, ACCESS	    
+                                                  132:   ;;	bsf	PORTD, 0	    ; Set the specific positions in the ports to 1 (the 4 mentioned above)   ; 0E1
+                                                  133:   ;;	bsf	PORTD, 1		; 0E2
+                                                  134:   ;;	bsf	PORTD, 2		; CP1
+                                                  135:   ;;	bsf	PORTD, 3		; CP2
+                                                  136:   ;
+                                                  137:   ;;	call	write_1			; can't do a read from chip 2 and write to chip one or vice versa at the same time RE: CAN NOW!
+                                                  138:   ;;	call	read_1
+                                                  139:   ;;	call	write_2
+                                                  140:   ;;	call	read_2
+                                                  141:   ;	call	end1
+                                                  142:   ;;	
+                                                  143:   ;;	; writing a routine for reading data from PORTE 
+                                                  144:   ;;	
+                                                  145:   ;;read_1	movlw	0x01			    
+                                                  146:   ;;	subwf	PORTD,1, ACCESS		; set OE1 to low by substracting 1 from port D
+                                                  147:   ;;	movlw	0x0	    
+                                                  148:   ;;	movwf	TRISH, ACCESS		; set PORT H to output
+                                                  149:   ;;	clrf	PORTH			; clear register PORTE
+                                                  150:   ;;	movff	PORTE, PORTH		; output port E into port H 
+                                                  151:   ;;	movlw	0x01			
+                                                  152:   ;;	addwf	PORTD,1, ACCESS		; set OE1 to high again
+                                                  153:   ;;	return
+                                                  154:   ;;	
+                                                  155:   ;;read_2	movlw	0x02			; same as read 1 but for OE2
+                                                  156:   ;;	subwf	PORTD,1, ACCESS
+                                                  157:   ;;	movlw	0x0
+                                                  158:   ;;	movwf	TRISC, ACCESS
+                                                  159:   ;;	clrf	PORTC
+                                                  160:   ;;	movff	PORTE, PORTC
+                                                  161:   ;;	movlw	0x02
+                                                  162:   ;;	addwf	PORTD,1, ACCESS
+                                                  163:   ;;	return
+                                                  164:   ;;	
+                                                  165:   ;;write_1	clrf	TRISE
+                                                  166:   ;;	movlw	0x09		    ; input in E
+                                                  167:   ;;	movwf	LATE		    ; moved in LAT E
+                                                  168:   ;;	movlw	0x04		    ; change CP1 to low
+                                                  169:   ;;	subwf	PORTD,1,ACCESS		
+                                                  170:   ;;	movlw	0x14		    ; counter to delay more than 250 nanosec
+                                                  171:   ;;	movwf	0x40
+                                                  172:   ;;	call	clock
+                                                  173:   ;;	movlw	0x04
+                                                  174:   ;;	addwf	PORTD,1,ACCESS		    ; set clock pulse 1 back to high
+                                                  175:   ;;	setf	TRISE		    ; set PORTE as input
+                                                  176:   ;;	return
+                                                  177:   ;;	
+                                                  178:   ;;	
+                                                  179:   ;;write_2	clrf	TRISE
+                                                  180:   ;;	movlw	0x08		    ; input in E
+                                                  181:   ;;	movwf	LATE		    ; moved in LAT E
+                                                  182:   ;;	movlw	0x08		    ; change CP2 to low
+                                                  183:   ;;	subwf	PORTD,1,ACCESS		
+                                                  184:   ;;	movlw	0x14		    ; counter to delay more than 250 nanosec
+                                                  185:   ;;	movwf	0x40
+                                                  186:   ;;	call	clock
+                                                  187:   ;;	movlw	0x08
+                                                  188:   ;;	addwf	PORTD,1,ACCESS		    ; set clock pulse 1 back to high
+                                                  189:   ;;	setf	TRISE		    ; set PORTE as input
+                                                  190:   ;;	return
+                                                  191:   ;;	
+                                                  192:   ;;	
+                                                  193:   ;clock	decfsz	0x40		    ; decrement the decrement in FR 0x40
+                                                  194:   ;	bra	clock
+                                                  195:   ;	return		
+                                                  196:   ;
+                                                  197:   end1    
+                                                  198:   	end
+                                                  199:   ;	
+                                                  200:   ;	
+                                                  201:   ;	
+                                                  202:   ;	
+                                                  203:   ;	
+                                                  204:   ;	
+                                                  205:   ;	
+                                                  206:   ;;	movlw	0x04
+                                                  207:   ;;	movwf	0x30
+                                                  208:   ;;	call	delay
+                                                  209:   ;	
+                                                  210:   ;	
+                                                  211:   ;;	org 0x0
+                                                  212:   ;;	goto	start
+                                                  213:   ;;	
+                                                  214:   ;;	org 0x100		    ; Main code starts here at address 0x100
+                                                  215:   ;;	
+                                                  216:   ;;start	lfsr	FSR0, 0x300	    ; load address 0x100 into fsr0
+                                                  217:   ;;
+                                                  218:   ;;	movlw 	0x0	
+                                                  219:   ;;	movwf	TRISC, ACCESS	    ; Port C all outputs
+                                                  220:   ;;	bra 	test
+                                                  221:   ;;loop	movff 	0x06, PORTC
+                                                  222:   ;;	movff	0x06, POSTINC0	    ; moves counter into FSR0 address 0x300 onwards (incremented by one successively)
+                                                  223:   ;;	movlw	0x04
+                                                  224:   ;;	movwf	0x30
+                                                  225:   ;;	call	delay		    ; delay routine
+                                                  226:   ;;	incf 	0x06, W, ACCESS
+                                                  227:   ;;	
+                                                  228:   ;;	
+                                                  229:   ;;test	movwf	0x06, ACCESS	    ; Test for end of loop condition
+                                                  230:   ;;	movlw 	0x1F
+                                                  231:   ;;	cpfsgt 	0x06, ACCESS
+                                                  232:   ;;	bra 	loop		    ; Not yet finished goto start of loop again
+                                                  233:   ;;	goto 	check		    ; Re-run program from start
+                                                  234:   ; 
+                                                  235:   ;;delay	movlw	0xF3		    ; initialize .03 in W 
+                                                  236:   ;;	movwf	0x40		    ; pass .03 to register 0x40
+                                                  237:   ;;	call	delay1
+                                                  238:   ;;	decfsz	0x30		    ; decrement the number in FR 0x30
+                                                  239:   ;;	bra	delay
+                                                  240:   ;;	return	
+                                                  241:   ;;
+                                                  242:   ;;delay1	decfsz	0x40		    ; decrement the decrement in FR 0x40
+                                                  243:   ;;	bra	delay1
+                                                  244:   ;;	return
+                                                  245:   ;
+                                                  246:   ;;check	lfsr	FSR1, 0x302	    ; load address 0x100 into fsr1
+                                                  247:   ;;	movlw	0x0
+                                                  248:   ;;	movwf	TRISD, ACCESS
+                                                  249:   ;;	bra	check_test
+                                                  250:   ;;
+                                                  251:   ;;; subroutine uses FSR1 to go through incrementing numbers and outputs a flashing light in PORTD if different
+                                                  252:   ;;check_loop	
+                                                  253:   ;;	movf	0x07, W		    ; move counter value in 0x07 into W
+                                                  254:   ;;	subwf	INDF1, f	    ; substracts counter value in W from 0x300 and onwards and changes value of 0x300 onwards
+                                                  255:   ;;	movff	POSTINC1, PORTD	    ; outputs value in FSR1 to PORTD
+                                                  256:   ;;	incf 	0x07, W, ACCESS	    ; counter increments
+                                                  257:   ;;	
+                                                  258:   ;;check_test
+                                                  259:   ;;	movwf	0x07, ACCESS	    ; Test for end of loop condition
+                                                  260:   ;;	movlw 	0x1F		    ; counter length
+                                                  261:   ;;	cpfsgt 	0x07, ACCESS
+                                                  262:   ;;	bra 	check_loop	    ; Not yet finished goto start of loop again
+                                                  263:   ;;	goto	0x0		    ; go to start 
+                                                  264:   ;	
+                                                  265:   ;	
+---  C:/Users/mik216/MPLABXProjects/Sec_dict.X/LCD.asm  -------------------------------------------------
+                                                  1:     #include p18f87k22.inc
+                                                  2:     
+                                                  3:         global  LCD_Setup, LCD_Write_Message, LCD_Clear_Screen, LCD_delay_ms, LCD_Second_Line, LCD_Write_Message_new, LCD_Send_Byte_D
+                                                  4:         global  LCD_Write_Hex
+                                                  5:     
+                                                  6:     acs0    udata_acs   ; named variables in access ram
+                                                  7:     LCD_cnt_l   res 1   ; reserve 1 byte for variable LCD_cnt_l
+                                                  8:     LCD_cnt_h   res 1   ; reserve 1 byte for variable LCD_cnt_h
+                                                  9:     LCD_cnt_ms  res 1   ; reserve 1 byte for ms counter
+                                                  10:    LCD_tmp	    res 1   ; reserve 1 byte for temporary use
+                                                  11:    LCD_counter res 1   ; reserve 1 byte for counting through message
+                                                  12:    LCD_counter1 res 1
+                                                  13:    
+                                                  14:    acs_ovr	access_ovr
+                                                  15:    LCD_hex_tmp res 1   ; reserve 1 byte for variable LCD_hex_tmp	
+                                                  16:    
+                                                  17:    	constant    LCD_E=5	; LCD enable bit
+                                                  18:        	constant    LCD_RS=4	; LCD register select bit
+                                                  19:    
+                                                  20:    LCD	code
+                                                  21:        
+                                                  22:    LCD_Setup
+0110  6A8A     CLRF LATB, ACCESS                  23:    	clrf    LATB
+0112  0EC0     MOVLW 0xC0                         24:    	movlw   b'11000000'	    ; RB0:5 all outputs
+0114  6E93     MOVWF TRISB, ACCESS                25:    	movwf	TRISB
+0116  0E28     MOVLW 0x28                         26:    	movlw   .40
+0118  EC09     CALL 0x212, 0                      27:    	call	LCD_delay_ms	; wait 40ms for LCD to start up properly
+011A  F001     NOP
+011C  0E30     MOVLW 0x30                         28:    	movlw	b'00110000'	; Function set 4-bit
+011E  ECD8     CALL 0x1B0, 0                      29:    	call	LCD_Send_Byte_I
+0120  F000     NOP
+0122  0E0A     MOVLW 0xA                          30:    	movlw	.10		; wait 40us
+0124  EC10     CALL 0x220, 0                      31:    	call	LCD_delay_x4us
+0126  F001     NOP
+0128  0E28     MOVLW 0x28                         32:    	movlw	b'00101000'	; 2 line display 5x8 dot characters
+012A  ECD8     CALL 0x1B0, 0                      33:    	call	LCD_Send_Byte_I
+012C  F000     NOP
+012E  0E0A     MOVLW 0xA                          34:    	movlw	.10		; wait 40us
+0130  EC10     CALL 0x220, 0                      35:    	call	LCD_delay_x4us
+0132  F001     NOP
+0134  0E28     MOVLW 0x28                         36:    	movlw	b'00101000'	; repeat, 2 line display 5x8 dot characters
+0136  ECD8     CALL 0x1B0, 0                      37:    	call	LCD_Send_Byte_I
+0138  F000     NOP
+013A  0E0A     MOVLW 0xA                          38:    	movlw	.10		; wait 40us
+013C  EC10     CALL 0x220, 0                      39:    	call	LCD_delay_x4us
+013E  F001     NOP
+0140  0E0F     MOVLW 0xF                          40:    	movlw	b'00001111'	; display on, cursor on, blinking on
+0142  ECD8     CALL 0x1B0, 0                      41:    	call	LCD_Send_Byte_I
+0144  F000     NOP
+0146  0E0A     MOVLW 0xA                          42:    	movlw	.10		; wait 40us
+0148  EC10     CALL 0x220, 0                      43:    	call	LCD_delay_x4us
+014A  F001     NOP
+014C  0E01     MOVLW 0x1                          44:    	movlw	b'00000001'	; display clear
+014E  ECD8     CALL 0x1B0, 0                      45:    	call	LCD_Send_Byte_I
+0150  F000     NOP
+0152  0E02     MOVLW 0x2                          46:    	movlw	.2		; wait 2ms
+0154  EC09     CALL 0x212, 0                      47:    	call	LCD_delay_ms
+0156  F001     NOP
+0158  0E06     MOVLW 0x6                          48:    	movlw	b'00000110'	; entry mode incr by 1 no shift
+015A  ECD8     CALL 0x1B0, 0                      49:    	call	LCD_Send_Byte_I
+015C  F000     NOP
+015E  0E0A     MOVLW 0xA                          50:    	movlw	.10		; wait 40us
+0160  EC10     CALL 0x220, 0                      51:    	call	LCD_delay_x4us
+0162  F001     NOP
+0164  0012     RETURN 0                           52:    	return
+                                                  53:    
+                                                  54:    LCD_Write_Hex	    ; Writes byte stored in W as hex
+0166  6E09     MOVWF 0x9, ACCESS                  55:    	movwf	LCD_hex_tmp
+0168  3809     SWAPF 0x9, W, ACCESS               56:    	swapf	LCD_hex_tmp,W	; high nibble first
+016A  ECB8     CALL 0x170, 0                      57:    	call	LCD_Hex_Nib
+016C  F000     NOP
+016E  5009     MOVF 0x9, W, ACCESS                58:    	movf	LCD_hex_tmp,W	; then low nibble
+                                                  59:    LCD_Hex_Nib	    ; writes low nibble as hex character
+0170  0B0F     ANDLW 0xF                          60:    	andlw	0x0F
+0172  6E06     MOVWF 0x6, ACCESS                  61:    	movwf	LCD_tmp
+0174  0E0A     MOVLW 0xA                          62:    	movlw	0x0A
+0176  6006     CPFSLT 0x6, ACCESS                 63:    	cpfslt	LCD_tmp
+0178  0F07     ADDLW 0x7                          64:    	addlw	0x07	; number is greater than 9 
+017A  0F26     ADDLW 0x26                         65:    	addlw	0x26
+017C  2406     ADDWF 0x6, W, ACCESS               66:    	addwf	LCD_tmp,W
+017E  ECE6     CALL 0x1CC, 0                      67:    	call	LCD_Send_Byte_D ; write out ascii
+0180  F000     NOP
+0182  0012     RETURN 0                           68:    	return
+                                                  69:    	
+                                                  70:    LCD_Write_Message	    ; Message stored at FSR2, length stored in W
+0184  6E07     MOVWF 0x7, ACCESS                  71:    	movwf   LCD_counter
+                                                  72:    LCD_Loop_message
+0186  50DE     MOVF POSTINC2, W, ACCESS           73:    	movf    POSTINC2, W
+0188  ECE6     CALL 0x1CC, 0                      74:    	call    LCD_Send_Byte_D
+018A  F000     NOP
+018C  2E07     DECFSZ 0x7, F, ACCESS              75:    	decfsz  LCD_counter
+018E  D7FB     BRA 0x186                          76:    	bra	LCD_Loop_message
+0190  0012     RETURN 0                           77:    	return
+                                                  78:    
+                                                  79:    LCD_Write_Message_new	    ; Message stored at FSR2, length stored in W
+0192  6E07     MOVWF 0x7, ACCESS                  80:    	movwf   LCD_counter ;set length of message
+0194  0E10     MOVLW 0x10                         81:    	movlw	0x10
+0196  6E08     MOVWF 0x8, ACCESS                  82:    	movwf	LCD_counter1	;set length of screen to .16
+                                                  83:    LCD_Loop_message_new
+0198  50DE     MOVF POSTINC2, W, ACCESS           84:    	movf    POSTINC2, W
+019A  ECE6     CALL 0x1CC, 0                      85:    	call    LCD_Send_Byte_D	;write character on screen
+019C  F000     NOP
+019E  2E08     DECFSZ 0x8, F, ACCESS              86:    	decfsz	LCD_counter1	;check if 16 characters written 
+01A0  D004     BRA 0x1AA                          87:    	bra	LCD_second_new	;if not branch to LCD_Second
+01A2  EC26     CALL 0x24C, 0                      88:    	call	LCD_Second_Line ;move onto second line of display
+01A4  F001     NOP
+01A6  0E10     MOVLW 0x10                         89:    	movlw	0x10		;reset counter
+01A8  6E08     MOVWF 0x8, ACCESS                  90:    	movwf	LCD_counter1
+                                                  91:    LCD_second_new
+01AA  2E07     DECFSZ 0x7, F, ACCESS              92:    	decfsz  LCD_counter	;decrease length of message counter and check if there is message left
+01AC  D7F5     BRA 0x198                          93:    	bra	LCD_Loop_message_new
+01AE  0012     RETURN 0                           94:    	return
+                                                  95:    
+                                                  96:    LCD_Send_Byte_I		    ; Transmits byte stored in W to instruction reg
+01B0  6E06     MOVWF 0x6, ACCESS                  97:    	movwf   LCD_tmp
+01B2  3806     SWAPF 0x6, W, ACCESS               98:    	swapf   LCD_tmp,W   ; swap nibbles, high nibble goes first
+01B4  0B0F     ANDLW 0xF                          99:    	andlw   0x0f	    ; select just low nibble
+01B6  6E8A     MOVWF LATB, ACCESS                 100:   	movwf   LATB	    ; output data bits to LCD
+01B8  988A     BCF LATB, 4, ACCESS                101:   	bcf	LATB, LCD_RS	; Instruction write clear RS bit
+01BA  ECF7     CALL 0x1EE, 0                      102:   	call    LCD_Enable  ; Pulse enable Bit 
+01BC  F000     NOP
+01BE  5006     MOVF 0x6, W, ACCESS                103:   	movf	LCD_tmp,W   ; swap nibbles, now do low nibble
+01C0  0B0F     ANDLW 0xF                          104:   	andlw   0x0f	    ; select just low nibble
+01C2  6E8A     MOVWF LATB, ACCESS                 105:   	movwf   LATB	    ; output data bits to LCD
+01C4  988A     BCF LATB, 4, ACCESS                106:   	bcf	LATB, LCD_RS    ; Instruction write clear RS bit
+01C6  ECF7     CALL 0x1EE, 0                      107:           call    LCD_Enable  ; Pulse enable Bit 
+01C8  F000     NOP
+01CA  0012     RETURN 0                           108:   	return
+                                                  109:   
+                                                  110:   LCD_Send_Byte_D		    ; Transmits byte stored in W to data reg
+01CC  6E06     MOVWF 0x6, ACCESS                  111:   	movwf   LCD_tmp
+01CE  3806     SWAPF 0x6, W, ACCESS               112:   	swapf   LCD_tmp,W   ; swap nibbles, high nibble goes first
+01D0  0B0F     ANDLW 0xF                          113:   	andlw   0x0f	    ; select just low nibble
+01D2  6E8A     MOVWF LATB, ACCESS                 114:   	movwf   LATB	    ; output data bits to LCD
+01D4  888A     BSF LATB, 4, ACCESS                115:   	bsf	LATB, LCD_RS	; Data write set RS bit
+01D6  ECF7     CALL 0x1EE, 0                      116:   	call    LCD_Enable  ; Pulse enable Bit 
+01D8  F000     NOP
+01DA  5006     MOVF 0x6, W, ACCESS                117:   	movf	LCD_tmp,W   ; swap nibbles, now do low nibble
+01DC  0B0F     ANDLW 0xF                          118:   	andlw   0x0f	    ; select just low nibble
+01DE  6E8A     MOVWF LATB, ACCESS                 119:   	movwf   LATB	    ; output data bits to LCD
+01E0  888A     BSF LATB, 4, ACCESS                120:   	bsf	LATB, LCD_RS    ; Data write set RS bit	    
+01E2  ECF7     CALL 0x1EE, 0                      121:           call    LCD_Enable  ; Pulse enable Bit 
+01E4  F000     NOP
+01E6  0E0A     MOVLW 0xA                          122:   	movlw	.10	    ; delay 40us
+01E8  EC10     CALL 0x220, 0                      123:   	call	LCD_delay_x4us
+01EA  F001     NOP
+01EC  0012     RETURN 0                           124:   	return
+                                                  125:   
+                                                  126:   LCD_Enable	    ; pulse enable bit LCD_E for 500ns
+01EE  0000     NOP                                127:   	nop
+01F0  0000     NOP                                128:   	nop
+01F2  0000     NOP                                129:   	nop
+01F4  0000     NOP                                130:   	nop
+01F6  0000     NOP                                131:   	nop
+01F8  0000     NOP                                132:   	nop
+01FA  0000     NOP                                133:   	nop
+01FC  0000     NOP                                134:   	nop
+01FE  8A8A     BSF LATB, 5, ACCESS                135:   	bsf	    LATB, LCD_E	    ; Take enable high
+0200  0000     NOP                                136:   	nop
+0202  0000     NOP                                137:   	nop
+0204  0000     NOP                                138:   	nop
+0206  0000     NOP                                139:   	nop
+0208  0000     NOP                                140:   	nop
+020A  0000     NOP                                141:   	nop
+020C  0000     NOP                                142:   	nop
+020E  9A8A     BCF LATB, 5, ACCESS                143:   	bcf	    LATB, LCD_E	    ; Writes data to LCD
+0210  0012     RETURN 0                           144:   	return
+                                                  145:   
+                                                  146:   	; ** a few delay routines below here as LCD timing can be quite critical ****
+                                                  147:   LCD_delay_ms		    ; delay given in ms in W
+0212  6E05     MOVWF 0x5, ACCESS                  148:   	movwf	LCD_cnt_ms
+0214  0EFA     MOVLW 0xFA                         149:   lcdlp2	movlw	.250	    ; 1 ms delay
+0216  EC10     CALL 0x220, 0                      150:   	call	LCD_delay_x4us	
+0218  F001     NOP
+021A  2E05     DECFSZ 0x5, F, ACCESS              151:   	decfsz	LCD_cnt_ms
+021C  D7FB     BRA 0x214                          152:   	bra	lcdlp2
+021E  0012     RETURN 0                           153:   	return
+                                                  154:       
+                                                  155:   LCD_delay_x4us		    ; delay given in chunks of 4 microsecond in W
+0220  6E03     MOVWF 0x3, ACCESS                  156:   	movwf	LCD_cnt_l   ; now need to multiply by 16
+0222  3A03     SWAPF 0x3, F, ACCESS               157:   	swapf   LCD_cnt_l,F ; swap nibbles
+0224  0E0F     MOVLW 0xF                          158:   	movlw	0x0f	    
+0226  1403     ANDWF 0x3, W, ACCESS               159:   	andwf	LCD_cnt_l,W ; move low nibble to W
+0228  6E04     MOVWF 0x4, ACCESS                  160:   	movwf	LCD_cnt_h   ; then to LCD_cnt_h
+022A  0EF0     MOVLW 0xF0                         161:   	movlw	0xf0	    
+022C  1603     ANDWF 0x3, F, ACCESS               162:   	andwf	LCD_cnt_l,F ; keep high nibble in LCD_cnt_l
+022E  EC1A     CALL 0x234, 0                      163:   	call	LCD_delay
+0230  F001     NOP
+0232  0012     RETURN 0                           164:   	return
+                                                  165:   
+                                                  166:   LCD_delay			; delay routine	4 instruction loop == 250ns	    
+0234  0E00     MOVLW 0x0                          167:   	movlw 	0x00		; W=0
+0236  0603     DECF 0x3, F, ACCESS                168:   lcdlp1	decf 	LCD_cnt_l,F	; no carry when 0x00 -> 0xff
+0238  5A04     SUBWFB 0x4, F, ACCESS              169:   	subwfb 	LCD_cnt_h,F	; no carry when 0x00 -> 0xff
+023A  E2FD     BC 0x236                           170:   	bc 	lcdlp1		; carry, then loop again
+023C  0012     RETURN 0                           171:   	return			; carry reset so return
+                                                  172:   
+                                                  173:   	
+                                                  174:   LCD_Clear_Screen
+023E  0E01     MOVLW 0x1                          175:   	movlw	b'00000001'	; display clear
+0240  ECD8     CALL 0x1B0, 0                      176:   	call	LCD_Send_Byte_I
+0242  F000     NOP
+0244  0E02     MOVLW 0x2                          177:   	movlw	.2		; wait 2ms
+0246  EC09     CALL 0x212, 0                      178:   	call	LCD_delay_ms
+0248  F001     NOP
+024A  0012     RETURN 0                           179:   	return
+                                                  180:   
+                                                  181:   	
+                                                  182:   LCD_Second_Line
+024C  0EC0     MOVLW 0xC0                         183:   	movlw	b'0011000000'	;move to secod lime?
+024E  ECD8     CALL 0x1B0, 0                      184:   	call	LCD_Send_Byte_I
+0250  F000     NOP
+0252  0E0A     MOVLW 0xA                          185:   	movlw	.10		; wait 40us
+0254  EC10     CALL 0x220, 0                      186:   	call	LCD_delay_x4us
+0256  F001     NOP
+0258  0012     RETURN 0                           187:   	return
+                                                  188:   	
+                                                  189:   	
+                                                  190:       end
+                                                  191:   
+                                                  192:   
