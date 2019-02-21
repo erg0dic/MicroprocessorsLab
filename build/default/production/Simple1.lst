@@ -1,4 +1,4 @@
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE  1
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE  1
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -22,335 +22,360 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
   0000                00005         extern  LCD_Setup, LCD_Write_Message, LCD_Clear_Screen, LCD_delay_ms, LCD_Second_Line, LCD_Write
                             _Message_new, LCD_Send_Byte_D
   0000                00006         extern  LCD_Write_Hex
-  0000                00007         extern  counter, address_count
-                      00008 
-                      00009 acs0    udata_acs
-000000                00010 delay_count     res 1   
-                      00011         
-                      00012 ;       global  SPI_MasterInit, SPI_MasterTransmit, Wait_Transmit, SPI_MasterReceive, Wait_read
-                      00013         
-                      00014         code
-                      00015         org 0x0
-000000 EF?? F???      00016         goto    start
-                      00017 ;       
-                      00018         org 0x100                   ; Main code starts here at address 0x100
-                      00019 ;       
-000100 0000           00020 start   nop
-000102 0EFF           00021         movlw   0xFF
-000104 6E00           00022         movwf   counter, 0
-000106 0EDA           00023         movlw   0xDA
-000108 6E00           00024         movwf   address_count, 0
-00010A EC?? F???      00025         call    LCD_Setup
-                      00026 ;lfsr   FSR0, 0x30
-                      00027 ;       movlw   0x11
-                      00028 ;       call    byte_reversal
-                      00029 ;       movwf   0x00
-00010E EC?? F???      00030         call    write_sequence_init
-000112 D???           00031         bra     write
-                      00032 
-                      00033         
-                      00034 ;start  lfsr    FSR0, 0x300         ; load address 0x100 into fsr0
-                      00035 ;
-                      00036 ;       movlw   0x0     
-                      00037 ;       movwf   TRISC, ACCESS       ; Port C all outputs
-                      00038 ;       bra     test
-                      00039 ;loop   movff   0x06, PORTC
-                      00040 ;       movff   0x06, POSTINC0      ; moves counter into FSR0 address 0x300 onwards (incremented by one 
+  0000                00007         extern  counter, address_count1, address_count2
+  0000                00008         extern  ac1, ac2, ac3, ac_temp1, ac_temp2, ac_temp3, init_counter24bit, counter24bit
+                      00009         
+                      00010 acs0    udata_acs
+000000                00011 delay_count     res 1   
+                      00012         
+                      00013 ;       global  SPI_MasterInit, SPI_MasterTransmit, Wait_Transmit, SPI_MasterReceive, Wait_read
+                      00014         
+                      00015         code
+                      00016         org 0x0
+000000 EF?? F???      00017         goto    start
+                      00018 ;       
+                      00019         org 0x100                   ; Main code starts here at address 0x100
+                      00020 ;       
+000100 0000           00021 start   nop
+000102 0EFF           00022         movlw   0xFF
+000104 6E00           00023         movwf   counter, 0
+000106 0E0A           00024         movlw   0x0A
+000108 6E00           00025         movwf   address_count1, 0
+00010A 0E18           00026         movlw   0x18    
+00010C 6E00           00027         movwf   address_count2, 0
+00010E EC?? F???      00028         call    LCD_Setup
+                      00029 
+000112 0E07           00030         movlw   0x07
+000114 6E??           00031         movwf   ac1
+000116 0EFF           00032         movlw   0xFF
+000118 6E??           00033         movwf   ac2
+00011A 0EFF           00034         movlw   0xFF
+00011C 6E??           00035         movwf   ac3
+                      00036 
+00011E EC?? F???      00037         call    init_counter24bit
+                      00038         
+                      00039 ;lfsr   FSR0, 0x30
+                      00040 ;       movlw   0x11
+                      00041 ;       call    byte_reversal
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00042 ;       movwf   0x00
+000122 EC?? F???      00043         call    write_sequence_init
+000126 D???           00044         bra     write
+                      00045 
+                      00046         
+                      00047 ;start  lfsr    FSR0, 0x300         ; load address 0x100 into fsr0
+                      00048 ;
+                      00049 ;       movlw   0x0     
+                      00050 ;       movwf   TRISC, ACCESS       ; Port C all outputs
+                      00051 ;       bra     test
+                      00052 ;loop   movff   0x06, PORTC
+                      00053 ;       movff   0x06, POSTINC0      ; moves counter into FSR0 address 0x300 onwards (incremented by one 
                             successively)
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE  2
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
-                      00041 ;       movlw   0x04
-                      00042 ;       movwf   0x30
-                      00043 ;       call    delay               ; delay routine
-                      00044 ;       incf    0x06, W, ACCESS
-                      00045 ;       
-                      00046 ;       
-                      00047 ;test   movwf   0x06, ACCESS        ; Test for end of loop condition
-                      00048 ;       movlw   0x1F
-                      00049 ;       cpfsgt  0x06, ACCESS
-                      00050 ;       bra     loop                ; Not yet finished goto start of loop again
-                      00051 ;       goto    check               ; Re-run program from start
-                      00052  
-                      00053 ;delay  movlw   0xF3                ; initialize .03 in W 
-                      00054 ;       movwf   0x40                ; pass .03 to register 0x40
-                      00055 ;       call    delay1
-                      00056 ;       decfsz  0x30                ; decrement the number in FR 0x30
-                      00057 ;       bra     delay
-                      00058 ;       return  
-                      00059 ;
-                      00060 ;delay1 decfsz  0x40                ; decrement the decrement in FR 0x40
-                      00061 ;       bra     delay1
-                      00062 ;       return
-                      00063 
-                      00064 ;check  lfsr    FSR1, 0x302         ; load address 0x100 into fsr1
-                      00065 ;       movlw   0x0
-                      00066 ;       movwf   TRISD, ACCESS
-                      00067 ;       bra     check_test
-                      00068 ;
-                      00069 ;; subroutine uses FSR1 to go through incrementing numbers and outputs a flashing light in PORTD if diff
+                      00054 ;       movlw   0x04
+                      00055 ;       movwf   0x30
+                      00056 ;       call    delay               ; delay routine
+                      00057 ;       incf    0x06, W, ACCESS
+                      00058 ;       
+                      00059 ;       
+                      00060 ;test   movwf   0x06, ACCESS        ; Test for end of loop condition
+                      00061 ;       movlw   0x1F
+                      00062 ;       cpfsgt  0x06, ACCESS
+                      00063 ;       bra     loop                ; Not yet finished goto start of loop again
+                      00064 ;       goto    check               ; Re-run program from start
+                      00065  
+                      00066 ;delay  movlw   0xF3                ; initialize .03 in W 
+                      00067 ;       movwf   0x40                ; pass .03 to register 0x40
+                      00068 ;       call    delay1
+                      00069 ;       decfsz  0x30                ; decrement the number in FR 0x30
+                      00070 ;       bra     delay
+                      00071 ;       return  
+                      00072 ;
+                      00073 ;delay1 decfsz  0x40                ; decrement the decrement in FR 0x40
+                      00074 ;       bra     delay1
+                      00075 ;       return
+                      00076 
+                      00077 ;check  lfsr    FSR1, 0x302         ; load address 0x100 into fsr1
+                      00078 ;       movlw   0x0
+                      00079 ;       movwf   TRISD, ACCESS
+                      00080 ;       bra     check_test
+                      00081 ;
+                      00082 ;; subroutine uses FSR1 to go through incrementing numbers and outputs a flashing light in PORTD if diff
                             erent
-                      00070 ;check_loop     
-                      00071 ;       movf    0x07, W             ; move counter value in 0x07 into W
-                      00072 ;       subwf   INDF1, f            ; substracts counter value in W from 0x300 and onwards and changes v
+                      00083 ;check_loop     
+                      00084 ;       movf    0x07, W             ; move counter value in 0x07 into W
+                      00085 ;       subwf   INDF1, f            ; substracts counter value in W from 0x300 and onwards and changes v
                             alue of 0x300 onwards
-                      00073 ;       movff   POSTINC1, PORTD     ; outputs value in FSR1 to PORTD
-                      00074 ;       incf    0x07, W, ACCESS     ; counter increments
-                      00075 ;       
-                      00076 ;check_test
-                      00077 ;       movwf   0x07, ACCESS        ; Test for end of loop condition
-                      00078 ;       movlw   0x1F                ; counter length
-                      00079 ;       cpfsgt  0x07, ACCESS
-                      00080 ;       bra     check_loop          ; Not yet finished goto start of loop again
-                      00081 ;       goto    0x0                 ; go to start 
-                      00082                 
-                      00083         
-                      00084 
-                      00085         
-                      00086         
-                      00087         
-                      00088         
-000114                00089 write
-                      00090         
-000114 0000           00091         nop
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE  3
+                      00086 ;       movff   POSTINC1, PORTD     ; outputs value in FSR1 to PORTD
+                      00087 ;       incf    0x07, W, ACCESS     ; counter increments
+                      00088 ;       
+                      00089 ;check_test
+                      00090 ;       movwf   0x07, ACCESS        ; Test for end of loop condition
+                      00091 ;       movlw   0x1F                ; counter length
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE  3
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-000116 0000           00092         nop
-                      00093 ;       call    write_sequence_init
-000118 EC?? F???      00094         call    write_sequence
-                      00095 ;       call    read_sequence_init
-                      00096 ;       movlw   0x00
-                      00097 ;       movwf   TRISH, ACCESS
-                      00098 ;       movlw   0x12
-                      00099 ;       movwf   PORTH, ACCESS
-                      00100 ;       goto    $
-                      00101 ;       call    read_sequence
-                      00102 ;       goto    $
-                      00103 ;       call    read_sequence_init
-                      00104 ;       call    read_sequence
-                      00105 
-00011C 2E00           00106         decfsz  address_count, 1, 0
-00011E D???           00107         bra     write
-                      00108         
-                      00109         
-000120 EC?? F???      00110         call    read
-                      00111         
-                      00112 
-000124                00113 read    
-000124 0E00           00114         movlw   0x00
-000126 6E99           00115         movwf   TRISH, ACCESS
-000128 EC?? F???      00116         call    read_sequence_init
-                      00117 
-00012C EC?? F???      00118 read2   call    read_sequence
-000130 6E87           00119         movwf   PORTH
-                      00120 ;       movlw   0xAA
-000132 EC?? F???      00121         call    LCD_Write_Hex
-000136 0EFF           00122         movlw   0xFF
-000138 6E??           00123         movwf   delay_count
-00013A EC?? F???      00124         call    big_delay
-00013E EC?? F???      00125         call    LCD_Clear_Screen
-                      00126         
-                      00127         
-000142 D???           00128         bra     read2       ;   read
-                      00129 
-                      00130 ;;      banksel PADCFG1                 ; PADCFG1 is not in Access Bank!!
-                      00131 ;;      bsf     PADCFG1, REPU, BANKED   ; PortE pull-ups on
-                      00132 ;;      movlb   0x00                    ; set BSR back to Bank 0
-                      00133 ;;      setf    TRISE                   ; Tri-state PortE (Set as input)
-                      00134 ;
-                      00135 ;       ; setting appropriate address/control lines in PORTD to high
-                      00136 ;       
-                      00137 ;
-                      00138 ;       
-                      00139 ;
-                      00140 ;       
-                      00141 ;loop   call SPI_MasterInit
-                      00142 ;       movf    0x10,0, ACCESS
-                      00143 ;       
-                      00144 ;       ;call   SPI_MasterTransmit
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE  4
+                      00092 ;       cpfsgt  0x07, ACCESS
+                      00093 ;       bra     check_loop          ; Not yet finished goto start of loop again
+                      00094 ;       goto    0x0                 ; go to start 
+                      00095                 
+                      00096         
+                      00097 
+                      00098         
+                      00099         
+                      00100         
+                      00101         
+000128                00102 write
+                      00103         
+000128 0000           00104         nop
+00012A 0000           00105         nop
+                      00106 ;       call    write_sequence_init
+00012C EC?? F???      00107         call    write_sequence
+                      00108 ;       call    read_sequence_init
+                      00109 ;       movlw   0x00
+                      00110 ;       movwf   TRISH, ACCESS
+                      00111 ;       movlw   0x12
+                      00112 ;       movwf   PORTH, ACCESS
+                      00113 ;       goto    $
+                      00114 ;       call    read_sequence
+                      00115 ;       goto    $
+                      00116 ;       call    read_sequence_init
+                      00117 ;       call    read_sequence
+                      00118 
+                      00119 ;       decfsz  address_count1, 1, 0
+000130 EC?? F???      00120         call    counter24bit
+                      00121 ;       incf    0x06, 1, 0
+000134 0E00           00122         movlw   0x00
+000136 6200           00123         cpfseq  ac3, 0  
+000138 D???           00124         bra     write
+00013A 6200           00125         cpfseq  ac2, 0
+00013C D???           00126         bra     write
+00013E 6200           00127         cpfseq  ac1, 0  
+000140 D???           00128         bra     write   
+000142 EC?? F???      00129         call    read
+                      00130         
+                      00131 
+000146                00132 read    
+000146 0E00           00133         movlw   0x00
+000148 6E99           00134         movwf   TRISH, ACCESS
+00014A EC?? F???      00135         call    read_sequence_init
+                      00136 
+00014E EC?? F???      00137 read2   call    read_sequence
+000152 6E87           00138         movwf   PORTH
+                      00139 ;       movlw   0xAA
+000154 EC?? F???      00140         call    LCD_Write_Hex
+000158 0EFF           00141         movlw   0xFF
+00015A 6E??           00142         movwf   delay_count
+00015C EC?? F???      00143         call    big_delay
+000160 EC?? F???      00144         call    LCD_Clear_Screen
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE  4
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00145 ;       
-                      00146 ;;      movlw   0xff                ; counter to delay more than 250 nanosec
-                      00147 ;;      movwf   0x40
-                      00148 ;;      call    clock
-                      00149 ;
-                      00150 ;
-                      00151 ;;      incf    0x10, 1, ACCESS
-                      00152 ;       
-                      00153 ;;      movlw   0xFF
-                      00154 ;;      cpfsgt  0x10, ACCESS
-                      00155 ;       ;bra    loop                ; Not yet finished goto start of loop again
-                      00156 ;       call    end1
-                      00157 
-                      00158 ;SPI_MasterInit ; Set Clock edge to negative
-                      00159 ;       bcf     SSP1STAT, CKE       ; MSSP enable; CKP=1; SPI master, clock=Fosc/64 (1MHz)
-                      00160 ;       movlw   (1<<SSPEN)|(1<<CKP)|(0x02)
-                      00161 ;       movwf   SSP1CON1                    ; SDO2 output; SCK2 output
-                      00162 ;       bcf     TRISC, SDO1                 ; PORTC5
-                      00163 ;       bcf     TRISC, SCK1                 ; PORTC3
-                      00164 ;       bsf     TRISC, SDI1                 ; PORTC4    
-                      00165 ;       return
-                      00166 ;       
-                      00167 ;SPI_MasterTransmit ; Start transmission of data (held in W)
-                      00168 ;       movwf   SSP1BUF
-                      00169 ;Wait_Transmit ; Wait for transmission to complete
-                      00170 ;       btfss   PIR1, SSP1IF
-                      00171 ;       bra     Wait_Transmit
-                      00172 ;       bcf     PIR1, SSP1IF ; clear interrupt flag
-                      00173 ;       return
-                      00174 ;               
-                      00175 ;
-                      00176 ;;SPI_MasterInitReceive ; Set Clock edge to negative
-                      00177 ;;      bcf     SSP1STAT, CKE       ; MSSP enable; CKP=1; SPI master, clock=Fosc/64 (1MHz)
-                      00178 ;;      movlw   (1<<SSPEN)|(1<<CKP)|(0x02)
-                      00179 ;;      movwf   SSP1CON1                    ; SDO2 output; SCK2 output
-                      00180 ;;      bsf     TRISC, SDI1                 ; PORTC4
-                      00181 ;;      bcf     TRISC, SCK1                 ; PORTC3
-                      00182 ;;      return
-                      00183 ;       
-                      00184 ;       
+                      00145         
+                      00146         
+000164 D???           00147         bra     read2       ;   read
+                      00148 
+                      00149 ;;      banksel PADCFG1                 ; PADCFG1 is not in Access Bank!!
+                      00150 ;;      bsf     PADCFG1, REPU, BANKED   ; PortE pull-ups on
+                      00151 ;;      movlb   0x00                    ; set BSR back to Bank 0
+                      00152 ;;      setf    TRISE                   ; Tri-state PortE (Set as input)
+                      00153 ;
+                      00154 ;       ; setting appropriate address/control lines in PORTD to high
+                      00155 ;       
+                      00156 ;
+                      00157 ;       
+                      00158 ;
+                      00159 ;       
+                      00160 ;loop   call SPI_MasterInit
+                      00161 ;       movf    0x10,0, ACCESS
+                      00162 ;       
+                      00163 ;       ;call   SPI_MasterTransmit
+                      00164 ;       
+                      00165 ;;      movlw   0xff                ; counter to delay more than 250 nanosec
+                      00166 ;;      movwf   0x40
+                      00167 ;;      call    clock
+                      00168 ;
+                      00169 ;
+                      00170 ;;      incf    0x10, 1, ACCESS
+                      00171 ;       
+                      00172 ;;      movlw   0xFF
+                      00173 ;;      cpfsgt  0x10, ACCESS
+                      00174 ;       ;bra    loop                ; Not yet finished goto start of loop again
+                      00175 ;       call    end1
+                      00176 
+                      00177 ;SPI_MasterInit ; Set Clock edge to negative
+                      00178 ;       bcf     SSP1STAT, CKE       ; MSSP enable; CKP=1; SPI master, clock=Fosc/64 (1MHz)
+                      00179 ;       movlw   (1<<SSPEN)|(1<<CKP)|(0x02)
+                      00180 ;       movwf   SSP1CON1                    ; SDO2 output; SCK2 output
+                      00181 ;       bcf     TRISC, SDO1                 ; PORTC5
+                      00182 ;       bcf     TRISC, SCK1                 ; PORTC3
+                      00183 ;       bsf     TRISC, SDI1                 ; PORTC4    
+                      00184 ;       return
                       00185 ;       
-                      00186 ;       
-                      00187 ;SPI_MasterReceive
-                      00188 ;;      movf    SSP1BUF, 0, 1           ; receive data transmission
-                      00189 ;       bra     Wait_read
-                      00190 ;       movf    SSP1BUF, 0, 0           ; receive data transmission in W
-                      00191 ;       return
-                      00192 ;Wait_read ; Wait for transmission to complete
-                      00193 ;       btfss   PIR1, SSP1IF
-                      00194 ;       bra     Wait_read
-                      00195 ;       bcf     PIR1, SSP1IF ; clear interrupt flag
-                      00196 ;       return  
-                      00197 ;       
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE  5
+                      00186 ;SPI_MasterTransmit ; Start transmission of data (held in W)
+                      00187 ;       movwf   SSP1BUF
+                      00188 ;Wait_Transmit ; Wait for transmission to complete
+                      00189 ;       btfss   PIR1, SSP1IF
+                      00190 ;       bra     Wait_Transmit
+                      00191 ;       bcf     PIR1, SSP1IF ; clear interrupt flag
+                      00192 ;       return
+                      00193 ;               
+                      00194 ;
+                      00195 ;;SPI_MasterInitReceive ; Set Clock edge to negative
+                      00196 ;;      bcf     SSP1STAT, CKE       ; MSSP enable; CKP=1; SPI master, clock=Fosc/64 (1MHz)
+                      00197 ;;      movlw   (1<<SSPEN)|(1<<CKP)|(0x02)
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE  5
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00198 
-                      00199 ;       
-                      00200 ;       
-                      00201 ;       
+                      00198 ;;      movwf   SSP1CON1                    ; SDO2 output; SCK2 output
+                      00199 ;;      bsf     TRISC, SDI1                 ; PORTC4
+                      00200 ;;      bcf     TRISC, SCK1                 ; PORTC3
+                      00201 ;;      return
                       00202 ;       
                       00203 ;       
                       00204 ;       
                       00205 ;       
-                      00206 ;       
-                      00207 ;       
-                      00208 ;       
-                      00209 ;       
-                      00210 ;       
-                      00211 ;       
-                      00212 ;       
-                      00213 ;       
-                      00214 ;;      movlw   0x0     
-                      00215 ;;      movwf   TRISD, ACCESS       ; Set all ports in D to 0 but start incrementing only RD0, RD1, RD2,
-                             RD3 as 0E1, 0E2, Cp1, Cp2
-                      00216 ;;      movlw   0x0f
-                      00217 ;;      movwf   PORTD, ACCESS   
+                      00206 ;SPI_MasterReceive
+                      00207 ;;      movf    SSP1BUF, 0, 1           ; receive data transmission
+                      00208 ;       bra     Wait_read
+                      00209 ;       movf    SSP1BUF, 0, 0           ; receive data transmission in W
+                      00210 ;       return
+                      00211 ;Wait_read ; Wait for transmission to complete
+                      00212 ;       btfss   PIR1, SSP1IF
+                      00213 ;       bra     Wait_read
+                      00214 ;       bcf     PIR1, SSP1IF ; clear interrupt flag
+                      00215 ;       return  
+                      00216 ;       
+                      00217 
                       00218 ;       
                       00219 ;       
                       00220 ;       
-                      00221 ;       ;movwf  PORTD, ACCESS       
-                      00222 ;;      bsf     PORTD, 0            ; Set the specific positions in the ports to 1 (the 4 mentioned abov
+                      00221 ;       
+                      00222 ;       
+                      00223 ;       
+                      00224 ;       
+                      00225 ;       
+                      00226 ;       
+                      00227 ;       
+                      00228 ;       
+                      00229 ;       
+                      00230 ;       
+                      00231 ;       
+                      00232 ;       
+                      00233 ;;      movlw   0x0     
+                      00234 ;;      movwf   TRISD, ACCESS       ; Set all ports in D to 0 but start incrementing only RD0, RD1, RD2,
+                             RD3 as 0E1, 0E2, Cp1, Cp2
+                      00235 ;;      movlw   0x0f
+                      00236 ;;      movwf   PORTD, ACCESS   
+                      00237 ;       
+                      00238 ;       
+                      00239 ;       
+                      00240 ;       ;movwf  PORTD, ACCESS       
+                      00241 ;;      bsf     PORTD, 0            ; Set the specific positions in the ports to 1 (the 4 mentioned abov
                             e)   ; 0E1
-                      00223 ;;      bsf     PORTD, 1                ; 0E2
-                      00224 ;;      bsf     PORTD, 2                ; CP1
-                      00225 ;;      bsf     PORTD, 3                ; CP2
-                      00226 ;
-                      00227 ;;      call    write_1                 ; can't do a read from chip 2 and write to chip one or vice vers
+                      00242 ;;      bsf     PORTD, 1                ; 0E2
+                      00243 ;;      bsf     PORTD, 2                ; CP1
+                      00244 ;;      bsf     PORTD, 3                ; CP2
+                      00245 ;
+                      00246 ;;      call    write_1                 ; can't do a read from chip 2 and write to chip one or vice vers
                             a at the same time RE: CAN NOW!
-                      00228 ;;      call    read_1
-                      00229 ;;      call    write_2
-                      00230 ;;      call    read_2
-                      00231 ;       call    end1
-                      00232 ;;      
-                      00233 ;;      ; writing a routine for reading data from PORTE 
-                      00234 ;;      
-                      00235 ;;read_1        movlw   0x01                        
-                      00236 ;;      subwf   PORTD,1, ACCESS         ; set OE1 to low by substracting 1 from port D
-                      00237 ;;      movlw   0x0         
-                      00238 ;;      movwf   TRISH, ACCESS           ; set PORT H to output
-                      00239 ;;      clrf    PORTH                   ; clear register PORTE
-                      00240 ;;      movff   PORTE, PORTH            ; output port E into port H 
-                      00241 ;;      movlw   0x01                    
-                      00242 ;;      addwf   PORTD,1, ACCESS         ; set OE1 to high again
-                      00243 ;;      return
-                      00244 ;;      
-                      00245 ;;read_2        movlw   0x02                    ; same as read 1 but for OE2
-                      00246 ;;      subwf   PORTD,1, ACCESS
-                      00247 ;;      movlw   0x0
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE  6
+                      00247 ;;      call    read_1
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE  6
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00248 ;;      movwf   TRISC, ACCESS
-                      00249 ;;      clrf    PORTC
-                      00250 ;;      movff   PORTE, PORTC
-                      00251 ;;      movlw   0x02
-                      00252 ;;      addwf   PORTD,1, ACCESS
-                      00253 ;;      return
-                      00254 ;;      
-                      00255 ;;write_1       clrf    TRISE
-                      00256 ;;      movlw   0x09                ; input in E
-                      00257 ;;      movwf   LATE                ; moved in LAT E
-                      00258 ;;      movlw   0x04                ; change CP1 to low
-                      00259 ;;      subwf   PORTD,1,ACCESS          
-                      00260 ;;      movlw   0x14                ; counter to delay more than 250 nanosec
-                      00261 ;;      movwf   0x40
-                      00262 ;;      call    clock
-                      00263 ;;      movlw   0x04
-                      00264 ;;      addwf   PORTD,1,ACCESS              ; set clock pulse 1 back to high
-                      00265 ;;      setf    TRISE               ; set PORTE as input
-                      00266 ;;      return
-                      00267 ;;      
-                      00268 ;;      
-                      00269 ;;write_2       clrf    TRISE
-                      00270 ;;      movlw   0x08                ; input in E
-                      00271 ;;      movwf   LATE                ; moved in LAT E
-                      00272 ;;      movlw   0x08                ; change CP2 to low
-                      00273 ;;      subwf   PORTD,1,ACCESS          
-                      00274 ;;      movlw   0x14                ; counter to delay more than 250 nanosec
-                      00275 ;;      movwf   0x40
-                      00276 ;;      call    clock
-                      00277 ;;      movlw   0x08
-                      00278 ;;      addwf   PORTD,1,ACCESS              ; set clock pulse 1 back to high
-                      00279 ;;      setf    TRISE               ; set PORTE as input
-                      00280 ;;      return
-                      00281 ;;      
-                      00282 ;;      
-                      00283 ;clock  decfsz  0x40                ; decrement the decrement in FR 0x40
-                      00284 ;       bra     clock
-                      00285 ;       return          
-                      00286 ;
-                      00287 
-                      00288 ;       
-                      00289 ;       
-                      00290 ;       
-000144                00291 big_delay
-                      00292         
-000144 5000           00293         movf    delay_count, 0
-000146 EC?? F???      00294         call    LCD_delay_ms
-00014A 0012           00295         return
-                      00296         
-00014C                00297 end1    
-                      00298         end     
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE  7
+                      00248 ;;      call    write_2
+                      00249 ;;      call    read_2
+                      00250 ;       call    end1
+                      00251 ;;      
+                      00252 ;;      ; writing a routine for reading data from PORTE 
+                      00253 ;;      
+                      00254 ;;read_1        movlw   0x01                        
+                      00255 ;;      subwf   PORTD,1, ACCESS         ; set OE1 to low by substracting 1 from port D
+                      00256 ;;      movlw   0x0         
+                      00257 ;;      movwf   TRISH, ACCESS           ; set PORT H to output
+                      00258 ;;      clrf    PORTH                   ; clear register PORTE
+                      00259 ;;      movff   PORTE, PORTH            ; output port E into port H 
+                      00260 ;;      movlw   0x01                    
+                      00261 ;;      addwf   PORTD,1, ACCESS         ; set OE1 to high again
+                      00262 ;;      return
+                      00263 ;;      
+                      00264 ;;read_2        movlw   0x02                    ; same as read 1 but for OE2
+                      00265 ;;      subwf   PORTD,1, ACCESS
+                      00266 ;;      movlw   0x0
+                      00267 ;;      movwf   TRISC, ACCESS
+                      00268 ;;      clrf    PORTC
+                      00269 ;;      movff   PORTE, PORTC
+                      00270 ;;      movlw   0x02
+                      00271 ;;      addwf   PORTD,1, ACCESS
+                      00272 ;;      return
+                      00273 ;;      
+                      00274 ;;write_1       clrf    TRISE
+                      00275 ;;      movlw   0x09                ; input in E
+                      00276 ;;      movwf   LATE                ; moved in LAT E
+                      00277 ;;      movlw   0x04                ; change CP1 to low
+                      00278 ;;      subwf   PORTD,1,ACCESS          
+                      00279 ;;      movlw   0x14                ; counter to delay more than 250 nanosec
+                      00280 ;;      movwf   0x40
+                      00281 ;;      call    clock
+                      00282 ;;      movlw   0x04
+                      00283 ;;      addwf   PORTD,1,ACCESS              ; set clock pulse 1 back to high
+                      00284 ;;      setf    TRISE               ; set PORTE as input
+                      00285 ;;      return
+                      00286 ;;      
+                      00287 ;;      
+                      00288 ;;write_2       clrf    TRISE
+                      00289 ;;      movlw   0x08                ; input in E
+                      00290 ;;      movwf   LATE                ; moved in LAT E
+                      00291 ;;      movlw   0x08                ; change CP2 to low
+                      00292 ;;      subwf   PORTD,1,ACCESS          
+                      00293 ;;      movlw   0x14                ; counter to delay more than 250 nanosec
+                      00294 ;;      movwf   0x40
+                      00295 ;;      call    clock
+                      00296 ;;      movlw   0x08
+                      00297 ;;      addwf   PORTD,1,ACCESS              ; set clock pulse 1 back to high
+                      00298 ;;      setf    TRISE               ; set PORTE as input
+                      00299 ;;      return
+                      00300 ;;      
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE  7
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00301 ;;      
+                      00302 ;clock  decfsz  0x40                ; decrement the decrement in FR 0x40
+                      00303 ;       bra     clock
+                      00304 ;       return          
+                      00305 ;
+                      00306 
+                      00307 ;       
+                      00308 ;       
+                      00309 ;       
+000166                00310 big_delay
+                      00311         
+000166 5000           00312         movf    delay_count, 0
+000168 EC?? F???      00313         call    LCD_delay_ms
+00016C 0012           00314         return
+                      00315         
+00016E                00316 end1    
+                      00317         end     
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE  8
 
 
 SYMBOL TABLE
@@ -409,7 +434,7 @@ ADMSK5                            00000005
 ADON                              00000000
 ADRES                             00000FC3
 ADRESH                            00000FC4
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE  8
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE  9
 
 
 SYMBOL TABLE
@@ -468,7 +493,7 @@ ANSEL16                           00000000
 ANSEL17                           00000001
 ANSEL18                           00000002
 ANSEL19                           00000003
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE  9
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 10
 
 
 SYMBOL TABLE
@@ -527,7 +552,7 @@ C1TSEL0                           00000000
 C1TSEL1                           00000001
 C1TSEL2                           00000002
 C2INA                             00000004
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 10
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 11
 
 
 SYMBOL TABLE
@@ -586,7 +611,7 @@ CCP1IP                            00000001
 CCP1M0                            00000000
 CCP1M1                            00000001
 CCP1M2                            00000002
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 11
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 12
 
 
 SYMBOL TABLE
@@ -645,7 +670,7 @@ CCP5M0                            00000000
 CCP5M1                            00000001
 CCP5M2                            00000002
 CCP5M3                            00000003
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 12
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 13
 
 
 SYMBOL TABLE
@@ -704,7 +729,7 @@ CCP9IP                            00000006
 CCP9M0                            00000000
 CCP9M1                            00000001
 CCP9M2                            00000002
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 13
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 14
 
 
 SYMBOL TABLE
@@ -763,7 +788,7 @@ CHSN1                             00000001
 CHSN2                             00000002
 CK1                               00000006
 CK2                               00000001
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 14
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 15
 
 
 SYMBOL TABLE
@@ -822,7 +847,7 @@ CTMUIE                            00000003
 CTMUIF                            00000003
 CTMUIP                            00000003
 CTMUMD                            00000006
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 15
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 16
 
 
 SYMBOL TABLE
@@ -881,7 +906,7 @@ ECCP1AS1                          00000005
 ECCP1AS2                          00000006
 ECCP1ASE                          00000007
 ECCP1CON                          00000FBB
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 16
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 17
 
 
 SYMBOL TABLE
@@ -940,7 +965,7 @@ FSR2H                             00000FDA
 FSR2L                             00000FD9
 GCEN                              00000007
 GIE                               00000007
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 17
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 18
 
 
 SYMBOL TABLE
@@ -999,7 +1024,7 @@ INT3F                             00000002
 INT3IE                            00000005
 INT3IF                            00000002
 INT3IP                            00000001
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 18
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 19
 
 
 SYMBOL TABLE
@@ -1058,7 +1083,7 @@ LATB7                             00000007
 LATC                              00000F8B
 LATC0                             00000000
 LATC1                             00000001
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 19
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 20
 
 
 SYMBOL TABLE
@@ -1117,7 +1142,7 @@ LATJ1                             00000001
 LATJ2                             00000002
 LATJ3                             00000003
 LATJ4                             00000004
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 20
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 21
 
 
 SYMBOL TABLE
@@ -1176,7 +1201,7 @@ NOT_TX8                           00000006
 NOT_W                             00000002
 NOT_WR                            00000001
 NOT_WRITE                         00000002
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 21
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 22
 
 
 SYMBOL TABLE
@@ -1235,7 +1260,7 @@ P3DC0                             00000000
 P3DC1                             00000001
 P3DC2                             00000002
 P3DC3                             00000003
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 22
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 23
 
 
 SYMBOL TABLE
@@ -1294,7 +1319,7 @@ PORTD                             00000F83
 PORTE                             00000F84
 PORTF                             00000F85
 PORTG                             00000F86
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 23
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 24
 
 
 SYMBOL TABLE
@@ -1353,7 +1378,7 @@ PSTR3CON                          00000F1A
 PWM1CON                           00000FBE
 PWM2CON                           00000F51
 R                                 00000002
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 24
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 25
 
 
 SYMBOL TABLE
@@ -1412,7 +1437,7 @@ RD                                00000000
 RD0                               00000000
 RD1                               00000001
 RD16                              00000001
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 25
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 26
 
 
 SYMBOL TABLE
@@ -1471,7 +1496,7 @@ RJ7                               00000007
 RJPU                              00000005
 RODIV0                            00000000
 RODIV1                            00000001
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 26
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 27
 
 
 SYMBOL TABLE
@@ -1530,7 +1555,7 @@ SDO2                              00000004
 SEN                               00000000
 SENDB                             00000003
 SENDB1                            00000003
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 27
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 28
 
 
 SYMBOL TABLE
@@ -1589,7 +1614,7 @@ SSP2STAT                          00000F68
 SSPADD                            00000FC8
 SSPBUF                            00000FC9
 SSPCON1                           00000FC6
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 28
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 29
 
 
 SYMBOL TABLE
@@ -1648,7 +1673,7 @@ T12OUTPS2                         00000005
 T12OUTPS3                         00000006
 T1CKI                             00000005
 T1CKPS0                           00000004
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 29
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 30
 
 
 SYMBOL TABLE
@@ -1707,7 +1732,7 @@ T5GSPM                            00000004
 T5GSS0                            00000000
 T5GSS1                            00000001
 T5GTM                             00000005
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 30
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 31
 
 
 SYMBOL TABLE
@@ -1766,7 +1791,7 @@ TMR12                             00000F32
 TMR12IE                           00000006
 TMR12IF                           00000006
 TMR12IP                           00000006
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 31
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 32
 
 
 SYMBOL TABLE
@@ -1825,7 +1850,7 @@ TMR5IE                            00000001
 TMR5IF                            00000001
 TMR5IP                            00000001
 TMR5L                             00000F7C
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 32
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 33
 
 
 SYMBOL TABLE
@@ -1884,7 +1909,7 @@ TRISB4                            00000004
 TRISB5                            00000005
 TRISB6                            00000006
 TRISB7                            00000007
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 33
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 34
 
 
 SYMBOL TABLE
@@ -1943,7 +1968,7 @@ TRISH7                            00000007
 TRISJ                             00000F9A
 TRISJ0                            00000000
 TRISJ1                            00000001
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 34
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 35
 
 
 SYMBOL TABLE
@@ -2002,7 +2027,7 @@ UB                                00000007
 ULPEN                             00000002
 ULPLVL                            00000005
 ULPSINK                           00000001
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 35
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 36
 
 
 SYMBOL TABLE
@@ -2061,7 +2086,7 @@ _CONFIG3L                         00300004
 _CONFIG4L                         00300006
 _CONFIG5H                         00300009
 _CONFIG5L                         00300008
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 36
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 37
 
 
 SYMBOL TABLE
@@ -2120,7 +2145,7 @@ _ECCPMX_PORTH_3H                  000000FD
 _FCMEN_OFF_1H                     000000BF
 _FCMEN_ON_1H                      000000FF
 _FOSC_EC1IO_1H                    000000FC
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 37
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 38
 
 
 SYMBOL TABLE
@@ -2179,7 +2204,7 @@ _WDTPS_1048576_2H                 000000FF
 _WDTPS_128_2H                     0000009F
 _WDTPS_131072_2H                  000000C7
 _WDTPS_16384_2H                   000000BB
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 38
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 39
 
 
 SYMBOL TABLE
@@ -2226,26 +2251,35 @@ _WRTD_ON_6H                       0000007F
 _XINST_OFF_1L                     000000BF
 _XINST_ON_1L                      000000FF
 __18F87K22                        00000001
-address_count                     00000000
-big_delay                         00000144
+ac1                               00000000
+ac2                               00000000
+ac3                               00000000
+ac_temp1                          00000000
+ac_temp2                          00000000
+ac_temp3                          00000000
+address_count1                    00000000
+address_count2                    00000000
+big_delay                         00000166
 byte_reversal                     00000000
 counter                           00000000
-delay_count                       00000000
-end1                              0000014C
-init_chip_s                       00000000
-read                              00000124
-read2                             0000012C
-read_sequence                     00000000
-read_sequence_init                00000000
-set_cs_high                       00000000
-MPASM 5.81                       SIMPLE1.ASM   2-18-2019  16:23:09         PAGE 39
+counter24bit                      00000000
+MPASM 5.81                       SIMPLE1.ASM   2-21-2019  15:08:46         PAGE 40
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+delay_count                       00000000
+end1                              0000016E
+init_chip_s                       00000000
+init_counter24bit                 00000000
+read                              00000146
+read2                             0000014E
+read_sequence                     00000000
+read_sequence_init                00000000
+set_cs_high                       00000000
 start                             00000100
-write                             00000114
+write                             00000128
 write_sequence                    00000000
 write_sequence_init               00000000
 

@@ -5,7 +5,9 @@
 	extern  LCD_Setup, LCD_Write_Message, LCD_Clear_Screen, LCD_delay_ms, LCD_Second_Line, LCD_Write_Message_new, LCD_Send_Byte_D
 	extern  LCD_Write_Hex
 	extern	counter, address_count1, address_count2
-
+	extern	ac1, ac2, ac3, ac_temp1, ac_temp2, ac_temp3, init_counter24bit, counter24bit
+	extern  ADC_Setup, ADC_Read
+	
 acs0	udata_acs
 delay_count	res 1	
 	
@@ -25,6 +27,26 @@ start	nop
 	movlw	0x18	
 	movwf	address_count2, 0
 	call	LCD_Setup
+
+	movlw 	0x07
+	movwf	ac1
+	movlw	0xFF
+	movwf	ac2
+	movlw	0xFF
+	movwf	ac3
+
+	call	init_counter24bit
+	
+	call	ADC_Setup  ; initialize ADC
+	
+; add ADC code where appropriate
+;	call	ADC_Read
+;	movf	ADRESH,W
+;	movwf	Mul_temp_B
+;	
+;	call	ADC_Read
+;	movf	ADRESL,W
+	
 ;lfsr	FSR0, 0x30
 ;	movlw	0x11
 ;	call	byte_reversal
@@ -105,9 +127,16 @@ write
 ;	call	read_sequence_init
 ;	call	read_sequence
 
-	decfsz	address_count1, 1, 0
+;	decfsz	address_count1, 1, 0
+	call	counter24bit
+;	incf	0x06, 1, 0
+	movlw	0x00
+	cpfseq	ac3, 0	
 	bra	write
-	call	
+	cpfseq	ac2, 0
+	bra	write
+	cpfseq	ac1, 0	
+	bra	write	
 	call	read
 	
 
