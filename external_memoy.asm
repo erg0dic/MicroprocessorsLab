@@ -1,15 +1,16 @@
 #include p18f87k22.inc
     
     global  init_chip_s, write_sequence_init, write_sequence, set_cs_high, read_sequence_init, read_sequence 
-    global  SPI_MasterInit, SPI_MasterTransmit, SPI_MasterReceive
+    global  SPI_MasterInit, SPI_MasterInit2, SPI_MasterTransmit2, SPI_MasterTransmit, SPI_MasterReceive
     global  counter, address_count1, address_count2
-    extern  LCD_delay_ms 
+    global  DAC_write
+    extern  LCD_delay_ms, LCD_delay_x4us 
     
 acs0	udata_acs
 counter	    res 1
 address_count1	res 1
 address_count2	res 1
-
+config_reg	res 1
     
 memory_interface    code
 
@@ -20,7 +21,7 @@ init_chip_s
 	movwf	TRISE
 	movlw	b'00000010'		    ; set RE1 to high and call a delay
 	movwf	PORTE
-	movlw	.10
+	movlw	.1
 	call	LCD_delay_ms	
 	movlw   0x00	    ; set RE1 to low
 	movwf	PORTE
@@ -69,9 +70,9 @@ write_sequence_init
 	return
 	
 write_sequence			; assumes a write sequence has been initialized
-	movf	counter, 0, 0		; check
-	dcfsnz	counter, 1, 0
-	call	reset_counter
+;	movf	counter, 0, 0		; check
+;	dcfsnz	counter, 1, 0
+;	call	reset_counter
 	
 	
 ;	movlw	0xAA
@@ -164,18 +165,65 @@ reset_counter
 	return
     
     
+SPI_MasterInit2 ; Set Clock edge to negative
+	bcf	SSP2STAT, CKE	    ; MSSP enable; CKP=1; SPI master, clock=Fosc/64 (1MHz)
+	movlw	(1<<SSPEN)|(1<<CKP)|(0x02)
+	movwf	SSP2CON1		    ; SDO2 output; SCK2 output
+	bcf	TRISD, SDO2		    ; PORTD4
+	bcf	TRISD, SCK2		    ; PORTD6
+;	bsf	TRISC, SDI1		    ; PORTC4	
+	return
+	
+SPI_MasterTransmit2 ; Start transmission of data (held in W)
+	movwf	SSP2BUF
+Wait_Transmit2 ; Wait for transmission to complete
+	btfss	PIR2, SSP2IF
+	bra	Wait_Transmit2
+	bcf	PIR2, SSP2IF ; clear interrupt flag
+	return    
+        
+    
+DAC_write
+	bcf	TRISE, 3	    ; set LDAC high
+	bsf	PORTE, 3
+	
+	bcf	TRISE, 2	    ; set RE2 as Chip select CS
+	bsf	PORTE, 2	    ; set RE2 high
+	movlw	.1
+	call	LCD_delay_x4us	
+	bcf	PORTE, 2	    ; set CS low
+	
+
+	
+	
+	movlw	b'01100000'	    ; configuration bits in W
+	movwf	config_reg
+	
+	call	read_sequence	    ; load right justified adc bits in W
+	addwf	config_reg, 0, 0    ; store high (config) and low nibble (data) ADDRESH high value
+	
+	call	SPI_MasterTransmit2	; send first byte
+	
+	call	read_sequence
+	call	SPI_MasterTransmit2	; send ADDRESL data to DAC
+
+	bcf	TRISE, 2
+	bsf	PORTE, 2		; set CS high
+	
+	bcf	TRISE, 3
+	bcf	PORTE, 3		; set LDAC low
+	movlw	.4
+	call	LCD_delay_x4us
+
+	bcf	TRISE, 3
+	bsf	PORTE, 3		; pulse LDAC back to high
+	
+	return
     
     
     
     
-    
-    
-    
-    
-    
-    
-    
-    
+
     
     
     
