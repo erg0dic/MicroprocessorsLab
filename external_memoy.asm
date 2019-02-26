@@ -3,7 +3,7 @@
     global  init_chip_s, write_sequence_init, write_sequence, set_cs_high, read_sequence_init, read_sequence 
     global  SPI_MasterInit, SPI_MasterInit2, SPI_MasterTransmit2, SPI_MasterTransmit, SPI_MasterReceive
     global  counter, address_count1, address_count2
-    global  DAC_write
+    global  DAC_write, DAC_setup
     extern  LCD_delay_ms, LCD_delay_x4us 
     
 acs0	udata_acs
@@ -11,7 +11,7 @@ counter	    res 1
 address_count1	res 1
 address_count2	res 1
 config_reg	res 1
-    
+temp_reg_1	res 1    
 memory_interface    code
 
    
@@ -182,29 +182,46 @@ Wait_Transmit2 ; Wait for transmission to complete
 	bcf	PIR2, SSP2IF ; clear interrupt flag
 	return    
         
-    
+
+DAC_setup
+;	bcf	TRISE, 3	    ; set LDAC high
+;	bsf	PORTE, 3
+;	
+;	bcf	TRISE, 2	    ; set RE2 as Chip select CS
+;	bsf	PORTE, 2	    ; set RE2 high
+;;	movlw	.1
+;;	call	LCD_delay_x4us	
+
 DAC_write
 	bcf	TRISE, 3	    ; set LDAC high
 	bsf	PORTE, 3
 	
 	bcf	TRISE, 2	    ; set RE2 as Chip select CS
 	bsf	PORTE, 2	    ; set RE2 high
-	movlw	.1
-	call	LCD_delay_x4us	
+	movlw	.3
+	call	LCD_delay_x4us		
+	
+	
+	
+
 	bcf	PORTE, 2	    ; set CS low
 	
 
 	
 	
-	movlw	b'01100000'	    ; configuration bits in W
+	movlw	b'00100000'	    ; configuration bits in W
 	movwf	config_reg
 	
 	call	read_sequence	    ; load right justified adc bits in W
-	addwf	config_reg, 0, 0    ; store high (config) and low nibble (data) ADDRESH high value
+	addwf	config_reg, 1, 0    ; store high (config) and low nibble (data) ADDRESH high value
+
+	call	read_sequence
+	addwf	temp_reg_1, 1, 0
 	
+	movf	config_reg, 0, 0
 	call	SPI_MasterTransmit2	; send first byte
 	
-	call	read_sequence
+	movf	temp_reg_1, 0, 0	
 	call	SPI_MasterTransmit2	; send ADDRESL data to DAC
 
 	bcf	TRISE, 2
@@ -212,9 +229,23 @@ DAC_write
 	
 	bcf	TRISE, 3
 	bcf	PORTE, 3		; set LDAC low
-	movlw	.4
-	call	LCD_delay_x4us
+;	movlw	.4
+;	call	LCD_delay_x4us
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
 
+	
 	bcf	TRISE, 3
 	bsf	PORTE, 3		; pulse LDAC back to high
 	
