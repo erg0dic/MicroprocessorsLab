@@ -12,10 +12,14 @@
 ;	extern	Mul_temp_A, Mul_temp_C, Mul_temp_B, Mul_temp_D, Mul_temp_E
 ;	extern  hex_to_dec, dec_1, dec_2, dec_3, dec_4
 	extern	DAC_write, SPI_MasterInit2, SPI_MasterTransmit2, DAC_setup
-	extern  keypad_setup, record_row, keypad_setup2, record_column, sumHandJ, keypad_LCD
+	extern  keypad_setup, record_row, keypad_setup2, record_column, sumHandJ, keypad_LCD, key_r, keypad_LCD_secure, keypad_button_press
 
 acs0	udata_acs
-delay_count	res 1	
+delay_count	res 1
+pin_1	res 1
+pin_2	res 1
+pin_3	res 1
+pin_4	res 1
 	
 ;	global	SPI_MasterInit, SPI_MasterTransmit, Wait_Transmit, SPI_MasterReceive, Wait_read
 	
@@ -33,16 +37,158 @@ start	nop
 ;	movlw	0x18	
 ;	movwf	address_count2, 0
 	call	LCD_Setup
+	movlw	0x00
+	movwf	pin_1
+	movwf	pin_2
+	movwf	pin_3
+	movwf	pin_4
+;	goto	write_start
+	bra	authentication
 
-;	call	keypad_setup
-;	call	record_row
-;	call	keypad_setup2
-;	call	record_column
-;	call	sumHandJ
-;	movlw	0x0FF		    ; no. of ms delay
-;	call	LCD_delay_ms
-;	call	keypad_LCD
+authentication	
+	call	keypad_button_press
+	
+;	movlw	0x05
+;	movwf	key_r
+;	
+;	movlw	0x01
+;	cpfslt	key_r, 0		    ; four digit pin is recorded
+	movff	key_r, pin_1
+;	movlw	key_r
+;	call	LCD_Write_Hex
+;	goto	$
+	
+	bra	authentication2
+	
+authentication2
+	call	keypad_button_press
+;	movlw	0x05
+;	movwf	key_r
+;	
+;	movlw	0x01
+;	cpfslt	key_r, 0		    ; four digit pin is recorded
+	movff	key_r, pin_2
+	
+	bra	authentication3	
+
+authentication3
+	
+	call	keypad_button_press
+	
+;	movlw	0x05
+;	movwf	key_r
+;	
+;	movlw	0x01
+;	cpfslt	key_r, 0		    ; four digit pin is recorded
+	movff	key_r, pin_3
+	
+	bra	authentication4
+	
+authentication4
+	
+	call	keypad_button_press
+	
+	movff	key_r, pin_4
+	
+	bra	verification
+;	
+;	cpfsgt	pin_2
+;	bra	authentication
+;	
+;	
+;	cpfslt	pin_2, 0		    ; four digit pin is recorded
+;	bra	authentication
+;	
+;	movlw	0x01
+;	cpfslt	key_r, 0		   
+;	movff	key_r, pin_2
+;	
+;	movlw	0x01
+;	cpfslt	key_r, 0		    
+;	movff	key_r, pin_3
+;	
+;	movlw	0x01
+;	cpfslt	key_r, 0		    
+;	movff	key_r, pin_4
+;	
+;	cpfslt	key_r, 0	
+;	bra	verification
+;	bra	authentication	
+	
+verification		; pin is 4789!, compare and check and display if its incorrect
+
+;	movlw	pin_1
+;	call	LCD_Write_Hex
+;	movlw	pin_2
+;	call	LCD_Write_Hex
+;	movlw	pin_3
+;	call	LCD_Write_Hex
+;	movlw	pin_4
+;	call	LCD_Write_Hex
+;	goto	$
+	movlw	0x84
+	cpfseq	pin_1, 0
+	bra	incorrect_pin
+
+	movlw	0x82	
+	cpfseq	pin_2, 0
+	bra	incorrect_pin	
+
+	movlw	0x42	
+	cpfseq	pin_3, 0
+	bra	incorrect_pin	
+
+	movlw	0x22	
+	cpfseq	pin_4, 0
+	bra	incorrect_pin	
+	bra	record_or_play
+
+	
+	
+record_or_play
+
+	movlw	0x00
+	movwf	key_r
+	call	LCD_Clear_Screen
+	movlw	0x4F
+	call	LCD_Send_Byte_D
+		
+	
+	call	keypad_button_press
+	movlw	0x81		    ; keypad code for A that signifies record
+	cpfseq	key_r, 0
+	bra	play
+	goto	write_start	
+	
+play
+	movlw	0x50
+	call	LCD_Send_Byte_D
+	movlw	0x21
+	cpfseq	key_r, 0
+	bra	lock
+	bra	read
+	
+	
+lock
+	movlw	0x11
+	cpfseq	key_r, 0
+	bra	record_or_play
+	goto	start
+	
+	
+	
+incorrect_pin
+	call	LCD_Clear_Screen
+	movlw	0x58	
+	call	LCD_Send_Byte_D
+	movlw	0xFF
+	call	big_delay
+	bra	authentication
+	
+;;	goto	$
 ;	bra	start
+	
+write_start
 	
 	movlw 	0x03
 	movwf	ac1
@@ -72,10 +218,6 @@ start	nop
 	call	LCD_Send_Byte_D
 	call	SPI_MasterInit2
 	bra	write
-
-	
-	
-	
 	
 write
         nop
@@ -92,63 +234,15 @@ write
 ;	call	LCD_Write_Hex
 
 	movf	ADRESL, W
-
 	
 	call	write_sequence
-;	call	LCD_Write_Hex
-
-
-;	call	LCD_Second_Line	
-
-;	call	ADC_Read
-;	movf	ADRESH,W
-;	movwf	Mul_temp_B
-;	
-;	call	ADC_Read
-;	movf	ADRESL,W
-;	movwf	Mul_temp_A		; define BA 16 bit to convert into decimal
-;	
-;	call	hex_to_dec
-	
-
-;	movf	dec_2, 0
-;	call	LCD_Write_Hex
-
-;	movf	dec_4, 0
-;	call	LCD_Write_Hex	
-	
-
-;	movf	ac2, W
-;	call	LCD_Write_Hex
-	
-;	movlw	0x03
-;	movwf	delay_count
-;	call	big_delay
-;;	call	big_delay
-;	call	LCD_Clear_Screen
-
-;	goto	write
-
-;	call	read_sequence_init
-;	movlw	0x00
-;	movwf	TRISH, ACCESS
-;	movlw	0x12
-;	movwf	PORTH, ACCESS
-;	goto	$
-;	call	read_sequence
-;	goto	$
-;	call	read_sequence_init
-;	call	read_sequence
-
-;	decfsz	address_count1, 1, 0
-;	call	LCD_Second_Line
-;	movf	ac3, 1, 0
-;	call	LCD_Write_Hex
-;	call	LCD_Clear_Screen
 	
 	nop
 	nop
 	nop
+;	movlw	.44
+;	call	LCD_delay_x4us
+	
 	call	counter24bit
 ;	call	counter24bit
 	
@@ -160,14 +254,15 @@ write
 	bra	write
 	cpfseq	ac1, 0	
 	bra	write
-	call	read
-	
+	bra	record_or_play
 ;	goto	$
 read	
-	call	LCD_Clear_Screen
+;	call	write_sequence_init
+;	call	write_sequence
 	movlw	0x00
 	movwf	TRISH, ACCESS
 	call	read_sequence_init
+	
 ;	call	DAC_setup
 	movlw 	0x03
 	movwf	ac1
@@ -180,6 +275,7 @@ read
 	
 	movlw	0x50
 	call	LCD_Send_Byte_D
+	call	SPI_MasterInit2
 	bra	read2
 	
 read2	;call	read_sequence
@@ -194,15 +290,16 @@ read2	;call	read_sequence
 	
 	
 	call	DAC_write
+;	bra	read2
 	
-	bra	read2
+;	bra	read2
 ;	call	read_sequence
 ;	call	LCD_Write_Hex
 	
 	
-	movlw	.1
-	call	LCD_delay_x4us
-	bra	read2
+;	movlw	.1
+;	call	LCD_delay_x4us
+;	bra	read2
 	call	counter24bit
 ;	call	counter24bit
 ;	incf	0x06, 1, 0
@@ -217,9 +314,9 @@ read2	;call	read_sequence
 	bra	read2
 	cpfseq	ac1, 0	
 	bra	read2	
-	call	LCD_Clear_Screen			;	read
-	bra	read2
-
+;	call	LCD_Clear_Screen			;	read
+;	bra	read2
+	bra	record_or_play
 ;	
 ;	
 ;	
