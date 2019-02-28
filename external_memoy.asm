@@ -89,7 +89,7 @@ read_sequence_init
 	movlw	b'00000010'		    ; set RE1 to high and call a delay
 	movwf	PORTE
 			
-	;call	SPI_MasterInit
+	call	SPI_MasterInit
 	
 	call	init_chip_s
 	movlw	b'00000011'		; Set write enable latch opcode to initialize writing into the external memory	
@@ -166,8 +166,8 @@ reset_counter
     
     
 SPI_MasterInit2 ; Set Clock edge to negative
-	bcf	SSP2STAT, CKE	    ; MSSP enable; CKP=1; SPI master, clock=Fosc/64 (1MHz)
-	movlw	(1<<SSPEN)|(1<<CKP)|(0x02)
+	bsf	SSP2STAT, CKE	    ; MSSP enable; CKP=1; SPI master, clock=Fosc/64 (1MHz)
+	movlw	(1<<SSPEN)|(0x02)
 	movwf	SSP2CON1		    ; SDO2 output; SCK2 output
 	bcf	TRISD, SDO2		    ; PORTD4
 	bcf	TRISD, SCK2		    ; PORTD6
@@ -209,13 +209,15 @@ DAC_write
 
 	
 	
-	movlw	b'00100000'	    ; configuration bits in W
+	movlw	b'00010000'	    ; configuration bits in W
 	movwf	config_reg
 	
 	call	read_sequence	    ; load right justified adc bits in W
+;	movlw	b'00001111'
 	addwf	config_reg, 1, 0    ; store high (config) and low nibble (data) ADDRESH high value
 
 	call	read_sequence
+;	movlw	b'11111111'	
 	addwf	temp_reg_1, 1, 0
 	
 	movf	config_reg, 0, 0
@@ -227,23 +229,40 @@ DAC_write
 	bcf	TRISE, 2
 	bsf	PORTE, 2		; set CS high
 	
+;	nop
+;	nop
+;	nop
+;	nop
+;	nop
+;	nop
+;	nop
+;	nop
+;	nop
+;	nop
+;	nop
+;	nop
+;	nop
+
+	
+	
+	
 	bcf	TRISE, 3
 	bcf	PORTE, 3		; set LDAC low
 ;	movlw	.4
 ;	call	LCD_delay_x4us
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
+;	nop
+;	nop
+;	nop
+;	nop
+;	nop
+;	nop
+;	nop
+;	nop
+;	nop
+;	nop
+;	nop
+;	nop
+;	nop
 
 	
 	bcf	TRISE, 3

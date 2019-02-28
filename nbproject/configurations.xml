@@ -20,6 +20,8 @@
       <itemPath>counter24b.asm</itemPath>
       <itemPath>Multiplication.asm</itemPath>
       <itemPath>ADC.asm</itemPath>
+      <itemPath>simple_dac.asm</itemPath>
+      <itemPath>keypad.asm</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -38,7 +40,7 @@
         <targetDevice>PIC18F87K22</targetDevice>
         <targetHeader></targetHeader>
         <targetPluginBoard></targetPluginBoard>
-        <platformTool>Simulator</platformTool>
+        <platformTool>ICD3PlatformTool</platformTool>
         <languageToolchain>MPASMWIN</languageToolchain>
         <languageToolchainVersion>5.81</languageToolchainVersion>
         <platform>3</platform>

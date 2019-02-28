@@ -1,10 +1,10 @@
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE  1
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE  1
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00001 #include p18f87k22.inc
+                      00001         #include p18f87k22.inc
                       00001         LIST
                       00002 
                       00003 ;==========================================================================
@@ -15,201 +15,28 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00008 ;==========================================================================
                       00009 
                       02986         LIST
-                      00002         
-                      00003 
-  0000                00004             global  byte_reversal
-                      00005             
-                      00006 acs0    udata_acs
-000000                00007 byte_to_reverse res 1   ; reserve 1 byte for each variable Mul_temp     
-000001                00008 reversed_byte   res 1
-000002                00009 byte_counter    res 1
-                      00010 
-                      00011 finger  code
-                      00012         
-                      00013         
-                      00014 ;start  
-                      00015 ;       movlw   0x16
-                      00016 ;       movwf   byte_to_reverse
-                      00017 ;       call    byte_reversal
-                      00018 ;       movwf   0x00        
-                      00019 ;       goto    end1
-                      00020 ;start  ;lfsr   FSR0, 0x300
-                      00021 ;       movlw   0x01
-                      00022 ;       movwf   0x10
-                      00023 ;;      banksel PADCFG1                 ; PADCFG1 is not in Access Bank!!
-                      00024 ;;      bsf     PADCFG1, REPU, BANKED   ; PortE pull-ups on
-                      00025 ;;      movlb   0x00                    ; set BSR back to Bank 0
-                      00026 ;;      setf    TRISE                   ; Tri-state PortE (Set as input)
-                      00027 ;
-                      00028 ;       ; setting appropriate address/control lines in PORTD to high
-                      00029         
-000000                00030 byte_reversal                           ; uses byte in W and reverses it
-000000 6E??           00031         movwf   byte_to_reverse 
-000002 0E00           00032         movlw   0x00
-000004 6E??           00033         movwf   reversed_byte           ; initialize reversed_byte register
-000006 0E08           00034         movlw   0x08                     
-000008 6E??           00035         movwf   byte_counter            ; counter to reverse a byte
-00000A 0E00           00036         movlw   0x00                    ; make W 0 again
-00000C EC?? F???      00037         call    reversing
-000010 5000           00038         movf    reversed_byte, 0, 0             ; move reversed byte to W
-000012 0012           00039         return
-                      00040 
-000014                00041 reversing       
-000014 3200           00042         rrcf    byte_to_reverse, 1, 0       ; rotates the byte to the left and stores in byte_to_reserve
-000016 2200           00043         addwfc  reversed_byte, 1, 0         ; add the least significant bit to 0x00 in reversed byte  
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE  2
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
-000018 4600           00044         rlncf   reversed_byte, 1, 0
-00001A 2E00           00045         decfsz  byte_counter, 1, 0
-00001C EC?? F???      00046         call    reversing
-000020 0012           00047         return   
-                      00048 ;       
-                      00049 
-                      00050         
-000022 EC?? F???      00051 loop    call SPI_MasterInit
-000026 5010           00052         movf    0x10,0, ACCESS
-                      00053         
-000028 EC?? F???      00054         call    SPI_MasterTransmit
-                      00055         
-                      00056 ;       movlw   0xff                ; counter to delay more than 250 nanosec
-                      00057 ;       movwf   0x40
-                      00058 ;       call    clock
-                      00059 
-                      00060 
-                      00061 ;       incf    0x10, 1, ACCESS
-                      00062         
-                      00063 ;       movlw   0xFF
-                      00064 ;       cpfsgt  0x10, ACCESS
-                      00065         ;bra    loop                ; Not yet finished goto start of loop again
-00002C EC?? F???      00066         call    end1
-                      00067 
-000030                00068 SPI_MasterInit ; Set Clock edge to negative
-000030 9C68           00069         bcf     SSP2STAT, CKE       ; MSSP enable; CKP=1; SPI master, clock=Fosc/64 (1MHz)
-000032 0E32           00070         movlw   (1<<SSPEN)|(1<<CKP)|(0x02)
-000034 6E67           00071         movwf   SSP2CON1                    ; SDO2 output; SCK2 output
-000036 9895           00072         bcf     TRISD, SDO2                 ; PORTD4
-000038 9C95           00073         bcf     TRISD, SCK2                 ; PORTD6
-00003A 0012           00074         return
-                      00075         
-00003C                00076 SPI_MasterTransmit ; Start transmission of data (held in W)
-00003C 6E6A           00077         movwf   SSP2BUF
-00003E                00078 Wait_Transmit ; Wait for transmission to complete
-00003E AAA1           00079         btfss   PIR2, SSP2IF
-000040 D???           00080         bra     Wait_Transmit
-000042 9AA1           00081         bcf     PIR2, SSP2IF ; clear interrupt flag
-000044 0012           00082         return
-                      00083                 
-                      00084         
-                      00085         
-                      00086         
-                      00087         
-                      00088         
-                      00089         
-                      00090         
-                      00091         
-                      00092         
-                      00093         
-                      00094         
-                      00095         
-                      00096         
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE  3
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
-                      00097         
-                      00098         
-                      00099         
-                      00100 ;       movlw   0x0     
-                      00101 ;       movwf   TRISD, ACCESS       ; Set all ports in D to 0 but start incrementing only RD0, RD1, RD2,
-                             RD3 as 0E1, 0E2, Cp1, Cp2
-                      00102 ;       movlw   0x0f
-                      00103 ;       movwf   PORTD, ACCESS   
-                      00104         
-                      00105         
-                      00106         
-                      00107         ;movwf  PORTD, ACCESS       
-                      00108 ;       bsf     PORTD, 0            ; Set the specific positions in the ports to 1 (the 4 mentioned abov
-                            e)   ; 0E1
-                      00109 ;       bsf     PORTD, 1                ; 0E2
-                      00110 ;       bsf     PORTD, 2                ; CP1
-                      00111 ;       bsf     PORTD, 3                ; CP2
-                      00112 
-                      00113 ;       call    write_1                 ; can't do a read from chip 2 and write to chip one or vice vers
-                            a at the same time RE: CAN NOW!
-                      00114 ;       call    read_1
-                      00115 ;       call    write_2
-                      00116 ;       call    read_2
-                      00117 ;       call    end1
-                      00118 ;       
-                      00119 ;       ; writing a routine for reading data from PORTE 
-                      00120 ;       
-                      00121 ;read_1 movlw   0x01                        
-                      00122 ;       subwf   PORTD,1, ACCESS         ; set OE1 to low by substracting 1 from port D
-                      00123 ;       movlw   0x0         
-                      00124 ;       movwf   TRISH, ACCESS           ; set PORT H to output
-                      00125 ;       clrf    PORTH                   ; clear register PORTE
-                      00126 ;       movff   PORTE, PORTH            ; output port E into port H 
-                      00127 ;       movlw   0x01                    
-                      00128 ;       addwf   PORTD,1, ACCESS         ; set OE1 to high again
-                      00129 ;       return
-                      00130 ;       
-                      00131 ;read_2 movlw   0x02                    ; same as read 1 but for OE2
-                      00132 ;       subwf   PORTD,1, ACCESS
-                      00133 ;       movlw   0x0
-                      00134 ;       movwf   TRISC, ACCESS
-                      00135 ;       clrf    PORTC
-                      00136 ;       movff   PORTE, PORTC
-                      00137 ;       movlw   0x02
-                      00138 ;       addwf   PORTD,1, ACCESS
-                      00139 ;       return
-                      00140 ;       
-                      00141 ;write_1        clrf    TRISE
-                      00142 ;       movlw   0x09                ; input in E
-                      00143 ;       movwf   LATE                ; moved in LAT E
-                      00144 ;       movlw   0x04                ; change CP1 to low
-                      00145 ;       subwf   PORTD,1,ACCESS          
-                      00146 ;       movlw   0x14                ; counter to delay more than 250 nanosec
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE  4
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
-                      00147 ;       movwf   0x40
-                      00148 ;       call    clock
-                      00149 ;       movlw   0x04
-                      00150 ;       addwf   PORTD,1,ACCESS              ; set clock pulse 1 back to high
-                      00151 ;       setf    TRISE               ; set PORTE as input
-                      00152 ;       return
-                      00153 ;       
-                      00154 ;       
-                      00155 ;write_2        clrf    TRISE
-                      00156 ;       movlw   0x08                ; input in E
-                      00157 ;       movwf   LATE                ; moved in LAT E
-                      00158 ;       movlw   0x08                ; change CP2 to low
-                      00159 ;       subwf   PORTD,1,ACCESS          
-                      00160 ;       movlw   0x14                ; counter to delay more than 250 nanosec
-                      00161 ;       movwf   0x40
-                      00162 ;       call    clock
-                      00163 ;       movlw   0x08
-                      00164 ;       addwf   PORTD,1,ACCESS              ; set clock pulse 1 back to high
-                      00165 ;       setf    TRISE               ; set PORTE as input
-                      00166 ;       return
-                      00167 ;       
-                      00168 ;       
-000046 2E40           00169 clock   decfsz  0x40                ; decrement the decrement in FR 0x40
-000048 D???           00170         bra     clock
-00004A 0012           00171         return          
-                      00172 
-00004C                00173 end1    
-                      00174         end
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE  5
+                      00002 
+  0000                00003         global  DACs
+                      00004         
+                      00005 int_hi  code    0x0008  ; high vector, no low vector
+000008 A4F2           00006         btfss   INTCON,TMR0IF   ; check that this is timer0 interrupt
+00000A 0011           00007         retfie  FAST            ; if not then return
+00000C 2A8C           00008         incf    LATD            ; increment PORTD
+00000E 94F2           00009         bcf     INTCON,TMR0IF   ; clear interrupt flag
+000010 0011           00010         retfie  FAST            ; fast return from interrupt
+                      00011 
+                      00012 DAC     code
+000000                00013 DACs    
+000000 6A95           00014         clrf    TRISD           ; Set PORTD as all outputs
+000002 6A8C           00015         clrf    LATD            ; Clear PORTD outputs
+000004 0E87           00016         movlw   b'10000111'     ; Set timer0 to 16-bit, Fosc/4/256
+000006 6ED5           00017         movwf   T0CON           ; = 62.5KHz clock rate, approx 1sec rollover
+000008 8AF2           00018         bsf     INTCON,TMR0IE   ; Enable timer0 interrupt
+00000A 8EF2           00019         bsf     INTCON,GIE      ; Enable all interrupts
+00000C 0012           00020         return
+                      00021 
+                      00022         end
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE  2
 
 
 SYMBOL TABLE
@@ -268,7 +95,7 @@ ADMSK5                            00000005
 ADON                              00000000
 ADRES                             00000FC3
 ADRESH                            00000FC4
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE  6
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE  3
 
 
 SYMBOL TABLE
@@ -327,7 +154,7 @@ ANSEL16                           00000000
 ANSEL17                           00000001
 ANSEL18                           00000002
 ANSEL19                           00000003
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE  7
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE  4
 
 
 SYMBOL TABLE
@@ -386,7 +213,7 @@ C1TSEL0                           00000000
 C1TSEL1                           00000001
 C1TSEL2                           00000002
 C2INA                             00000004
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE  8
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE  5
 
 
 SYMBOL TABLE
@@ -445,7 +272,7 @@ CCP1IP                            00000001
 CCP1M0                            00000000
 CCP1M1                            00000001
 CCP1M2                            00000002
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE  9
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE  6
 
 
 SYMBOL TABLE
@@ -504,7 +331,7 @@ CCP5M0                            00000000
 CCP5M1                            00000001
 CCP5M2                            00000002
 CCP5M3                            00000003
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 10
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE  7
 
 
 SYMBOL TABLE
@@ -563,7 +390,7 @@ CCP9IP                            00000006
 CCP9M0                            00000000
 CCP9M1                            00000001
 CCP9M2                            00000002
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 11
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE  8
 
 
 SYMBOL TABLE
@@ -622,7 +449,7 @@ CHSN1                             00000001
 CHSN2                             00000002
 CK1                               00000006
 CK2                               00000001
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 12
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE  9
 
 
 SYMBOL TABLE
@@ -681,7 +508,7 @@ CTMUIE                            00000003
 CTMUIF                            00000003
 CTMUIP                            00000003
 CTMUMD                            00000006
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 13
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 10
 
 
 SYMBOL TABLE
@@ -701,6 +528,7 @@ CVREN                             00000007
 CVROE                             00000006
 CVRSS                             00000005
 D                                 00000005
+DACs                              00000000
 DATA_ADDRESS                      00000005
 DC                                00000001
 DC10B0                            00000004
@@ -739,13 +567,13 @@ ECCP1AS0                          00000004
 ECCP1AS1                          00000005
 ECCP1AS2                          00000006
 ECCP1ASE                          00000007
-ECCP1CON                          00000FBB
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 14
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 11
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+ECCP1CON                          00000FBB
 ECCP1DEL                          00000FBE
 ECCP2AS                           00000F52
 ECCP2AS0                          00000004
@@ -798,13 +626,13 @@ FSR2                              00000002
 FSR2H                             00000FDA
 FSR2L                             00000FD9
 GCEN                              00000007
-GIE                               00000007
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 15
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 12
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+GIE                               00000007
 GIEH                              00000007
 GIEL                              00000006
 GIE_GIEH                          00000007
@@ -857,13 +685,13 @@ INT3E                             00000005
 INT3F                             00000002
 INT3IE                            00000005
 INT3IF                            00000002
-INT3IP                            00000001
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 16
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 13
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+INT3IP                            00000001
 INT3P                             00000001
 INTCON                            00000FF2
 INTCON2                           00000FF1
@@ -916,13 +744,13 @@ LATB6                             00000006
 LATB7                             00000007
 LATC                              00000F8B
 LATC0                             00000000
-LATC1                             00000001
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 17
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 14
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+LATC1                             00000001
 LATC2                             00000002
 LATC3                             00000003
 LATC4                             00000004
@@ -975,13 +803,13 @@ LATJ0                             00000000
 LATJ1                             00000001
 LATJ2                             00000002
 LATJ3                             00000003
-LATJ4                             00000004
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 18
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 15
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+LATJ4                             00000004
 LATJ5                             00000005
 LATJ6                             00000006
 LATJ7                             00000007
@@ -1034,13 +862,13 @@ ODCON3                            00000F27
 OE                                00000001
 OERR                              00000001
 OERR1                             00000001
-OERR2                             00000001
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 19
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 16
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+OERR2                             00000001
 OSC1                              00000007
 OSC2                              00000006
 OSCCON                            00000FD3
@@ -1093,13 +921,13 @@ P3M0                              00000006
 P3M1                              00000007
 P3RSEN                            00000007
 PA3                               00000000
-PADCFG1                           00000F53
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 20
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 17
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+PADCFG1                           00000F53
 PB1                               00000007
 PB3                               00000005
 PC                                00000FF9
@@ -1152,13 +980,13 @@ POSTDEC1                          00000FE5
 POSTDEC2                          00000FDD
 POSTINC0                          00000FEE
 POSTINC1                          00000FE6
-POSTINC2                          00000FDE
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 21
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 18
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+POSTINC2                          00000FDE
 PR10                              00000F34
 PR12                              00000F31
 PR2                               00000FCB
@@ -1211,13 +1039,13 @@ RA3                               00000003
 RA4                               00000004
 RA5                               00000005
 RA6                               00000006
-RA7                               00000007
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 22
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 19
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+RA7                               00000007
 RB0                               00000000
 RB1                               00000001
 RB2                               00000002
@@ -1270,13 +1098,13 @@ RD5                               00000005
 RD6                               00000006
 RD7                               00000007
 RDPU                              00000007
-RE0                               00000000
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 23
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 20
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+RE0                               00000000
 RE1                               00000001
 RE2                               00000002
 RE3                               00000003
@@ -1329,13 +1157,13 @@ ROSEL                             00000004
 ROSSLP                            00000005
 RSEN                              00000001
 RTCC                              00000004
-RTCCAL                            00000F5E
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 24
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 21
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+RTCCAL                            00000F5E
 RTCCFG                            00000F5F
 RTCCIE                            00000000
 RTCCIF                            00000000
@@ -1388,13 +1216,13 @@ SOSCGO                            00000003
 SOSCI                             00000001
 SOSCO                             00000000
 SOSCRUN                           00000006
-SP0                               00000000
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 25
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 22
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+SP0                               00000000
 SP1                               00000001
 SP2                               00000002
 SP3                               00000003
@@ -1409,8 +1237,6 @@ SPEN1                             00000007
 SPEN2                             00000007
 SPI1OD                            00000007
 SPI2OD                            00000000
-SPI_MasterInit                    00000030
-SPI_MasterTransmit                0000003C
 SREN                              00000005
 SREN1                             00000005
 SREN2                             00000005
@@ -1448,13 +1274,13 @@ SSPM0                             00000000
 SSPM1                             00000001
 SSPM2                             00000002
 SSPM3                             00000003
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 26
+SSPOV                             00000006
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 23
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
-SSPOV                             00000006
 SSPSTAT                           00000FC7
 STATUS                            00000FD8
 STKFUL                            00000007
@@ -1507,13 +1333,13 @@ T1GGO_NOT_T1DONE                  00000003
 T1GPOL                            00000006
 T1GSPM                            00000004
 T1GSS0                            00000000
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 27
+T1GSS1                            00000001
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 24
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
-T1GSS1                            00000001
 T1GTM                             00000005
 T1GVAL                            00000002
 T2CKPS0                           00000000
@@ -1566,13 +1392,13 @@ T6OUTPS1                          00000004
 T6OUTPS2                          00000005
 T6OUTPS3                          00000006
 T7CKI                             00000004
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 28
+T7CKPS0                           00000004
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 25
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
-T7CKPS0                           00000004
 T7CKPS1                           00000005
 T7CON                             00000F3D
 T7G                               00000001
@@ -1625,13 +1451,13 @@ TMR1GIE                           00000002
 TMR1GIF                           00000002
 TMR1GIP                           00000002
 TMR1H                             00000FCF
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 29
+TMR1IE                            00000000
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 26
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
-TMR1IE                            00000000
 TMR1IF                            00000000
 TMR1IP                            00000000
 TMR1L                             00000FCE
@@ -1684,13 +1510,13 @@ TMR6IP                            00000002
 TMR6MD                            00000004
 TMR6ON                            00000002
 TMR7                              00000F3E
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 30
+TMR7CS0                           00000006
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 27
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
-TMR7CS0                           00000006
 TMR7CS1                           00000007
 TMR7GE                            00000007
 TMR7GIE                           00000007
@@ -1743,13 +1569,13 @@ TRISC4                            00000004
 TRISC5                            00000005
 TRISC6                            00000006
 TRISC7                            00000007
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 31
+TRISD                             00000F95
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 28
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
-TRISD                             00000F95
 TRISD0                            00000000
 TRISD1                            00000001
 TRISD2                            00000002
@@ -1802,13 +1628,13 @@ TRISJ7                            00000007
 TRMT                              00000001
 TRMT1                             00000001
 TRMT2                             00000001
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 32
+TUN0                              00000000
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 29
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
-TUN0                              00000000
 TUN1                              00000001
 TUN2                              00000002
 TUN3                              00000003
@@ -1861,13 +1687,13 @@ VREF_MINUS                        00000002
 VREF_PLUS                         00000003
 W                                 00000000
 WAIT0                             00000004
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 33
+WAIT1                             00000005
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 30
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
-WAIT1                             00000005
 WCOL                              00000007
 WDTCON                            00000FD1
 WM0                               00000000
@@ -1879,7 +1705,6 @@ WRERR                             00000003
 WRH                               00000003
 WRL                               00000002
 WUE                               00000001
-Wait_Transmit                     0000003E
 Z                                 00000002
 _ABW_MM_3L                        000000FF
 _ABW_XM12_3L                      000000EF
@@ -1920,14 +1745,14 @@ _CP0_OFF_5L                       000000FF
 _CP0_ON_5L                        000000FE
 _CP1_OFF_5L                       000000FF
 _CP1_ON_5L                        000000FD
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 34
+_CP2_OFF_5L                       000000FF
+_CP2_ON_5L                        000000FB
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 31
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
-_CP2_OFF_5L                       000000FF
-_CP2_ON_5L                        000000FB
 _CP3_OFF_5L                       000000FF
 _CP3_ON_5L                        000000F7
 _CP4_OFF_5L                       000000FF
@@ -1979,14 +1804,14 @@ _FOSC_EC3_1H                      000000F5
 _FOSC_HS1_1H                      000000F3
 _FOSC_HS2_1H                      000000F2
 _FOSC_INTIO1_1H                   000000F9
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 35
+_FOSC_INTIO2_1H                   000000F8
+_FOSC_LP_1H                       000000F0
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 32
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
-_FOSC_INTIO2_1H                   000000F8
-_FOSC_LP_1H                       000000F0
 _FOSC_RCIO_1H                     000000F7
 _FOSC_RC_1H                       000000F6
 _FOSC_XT_1H                       000000F1
@@ -2038,14 +1863,14 @@ _WDTPS_262144_2H                  000000CB
 _WDTPS_2_2H                       00000087
 _WDTPS_32768_2H                   000000BF
 _WDTPS_32_2H                      00000097
-MPASM 5.81                        FINGER.ASM   2-21-2019  14:46:15         PAGE 36
+_WDTPS_4096_2H                    000000B3
+_WDTPS_4_2H                       0000008B
+MPASM 5.81                    SIMPLE_DAC.ASM   2-27-2019  12:10:22         PAGE 33
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
-_WDTPS_4096_2H                    000000B3
-_WDTPS_4_2H                       0000008B
 _WDTPS_512_2H                     000000A7
 _WDTPS_524288_2H                  000000CF
 _WDTPS_64_2H                      0000009B
@@ -2077,16 +1902,6 @@ _WRTD_ON_6H                       0000007F
 _XINST_OFF_1L                     000000BF
 _XINST_ON_1L                      000000FF
 __18F87K22                        00000001
-__DEBUG                           
-__MPLAB_DEBUGGER_SIMULATOR        1
-byte_counter                      00000002
-byte_reversal                     00000000
-byte_to_reverse                   00000000
-clock                             00000046
-end1                              0000004C
-loop                              00000022
-reversed_byte                     00000001
-reversing                         00000014
 
 Errors   :     0
 Warnings :     0 reported,     0 suppressed

@@ -1,16 +1,21 @@
 MPLINK 5.09, LINKER
-Linker Map File - Created Thu Feb 21 15:08:48 2019
+Linker Map File - Created Thu Feb 28 17:37:37 2019
 
                                  Section Info
                   Section       Type    Address   Location Size(Bytes)
                 ---------  ---------  ---------  ---------  ---------
                    .org_0       code   0x000000    program   0x000004
                    .cinit    romdata   0x000004    program   0x000002
-         memory_interface       code   0x000006    program   0x0000c0
-                   .org_1       code   0x000100    program   0x00006e
-                      LCD       code   0x00016e    program   0x00014a
-                   finger       code   0x0002b8    program   0x00004c
-             here_is_some       code   0x000304    program   0x000042
+                   int_hi       code   0x000008    program   0x00000a
+           multiplication       code   0x000012    program   0x0000b8
+                      ADC       code   0x0000ca    program   0x00001a
+                      DAC       code   0x0000e4    program   0x00000e
+                   .org_1       code   0x000100    program   0x000132
+                   keypad       code   0x000232    program   0x000166
+                      LCD       code   0x000398    program   0x00014a
+         memory_interface       code   0x0004e2    program   0x00010c
+                   finger       code   0x0005ee    program   0x00004c
+             here_is_some       code   0x00063a    program   0x000042
 .config_300000_BUILD/DEFAULT/PRODUCTION/CONFIG.    romdata   0x300000    program   0x000001
 .config_300001_BUILD/DEFAULT/PRODUCTION/CONFIG.    romdata   0x300001    program   0x000001
 .config_300002_BUILD/DEFAULT/PRODUCTION/CONFIG.    romdata   0x300002    program   0x000001
@@ -24,174 +29,323 @@ Linker Map File - Created Thu Feb 21 15:08:48 2019
 .config_30000B_BUILD/DEFAULT/PRODUCTION/CONFIG.    romdata   0x30000b    program   0x000001
 .config_30000C_BUILD/DEFAULT/PRODUCTION/CONFIG.    romdata   0x30000c    program   0x000001
 .config_30000D_BUILD/DEFAULT/PRODUCTION/CONFIG.    romdata   0x30000d    program   0x000001
-                     acs0      udata   0x000000       data   0x000013
-                  acs_ovr      udata   0x000013       data   0x000001
+                     acs0      udata   0x000000       data   0x00002a
+                  acs_ovr      udata   0x00002a       data   0x000001
 
 
 
                               Program Memory Usage 
                                Start         End      
                            ---------   ---------      
-                            0x000000    0x0000c5      
-                            0x000100    0x000345      
+                            0x000000    0x000005      
+                            0x000008    0x0000f1      
+                            0x000100    0x00067b      
                             0x300000    0x300006      
                             0x300008    0x30000d      
-            793 out of 132120 program addresses used, program memory utilization is 0%
+            1657 out of 132120 program addresses used, program memory utilization is 1%
 
 
 
                               Symbols - Sorted by Name
                      Name    Address   Location    Storage File                     
                 ---------  ---------  ---------  --------- ---------                
-         LCD_Clear_Screen   0x00029c    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-               LCD_Enable   0x00024c    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-              LCD_Hex_Nib   0x0001ce    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-         LCD_Loop_message   0x0001e4    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-     LCD_Loop_message_new   0x0001f6    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-          LCD_Second_Line   0x0002aa    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-          LCD_Send_Byte_D   0x00022a    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-          LCD_Send_Byte_I   0x00020e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-                LCD_Setup   0x00016e    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-            LCD_Write_Hex   0x0001c4    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-        LCD_Write_Message   0x0001e2    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-    LCD_Write_Message_new   0x0001f0    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-                LCD_delay   0x000292    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-             LCD_delay_ms   0x000270    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-           LCD_delay_x4us   0x00027e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-           LCD_second_new   0x000208    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-           SPI_MasterInit   0x0002e8    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
-           SPI_MasterInit   0x00008e    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-        SPI_MasterReceive   0x0000a6    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-       SPI_MasterTransmit   0x00009c    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-       SPI_MasterTransmit   0x0002f4    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
-            Wait_Transmit   0x00009e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-            Wait_Transmit   0x0002f6    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
-                Wait_read   0x0000aa    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-                big_delay   0x000166    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
-            byte_reversal   0x0002b8    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
-                    clock   0x0002fe    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
-             counter24bit   0x00030e    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-                     end1   0x00016e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
-                     end1   0x000304    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
-              init_chip_s   0x000006    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-        init_counter24bit   0x000304    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-                   lcdlp1   0x000294    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-                   lcdlp2   0x000272    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-                     loop   0x0002da    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
-                     read   0x000146    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
-                    read2   0x00014e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
-            read_sequence   0x000088    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-       read_sequence_init   0x000062    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-            reset_counter   0x0000c0    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-                reversing   0x0002cc    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
-       second_byte_count1   0x00031c    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-       second_byte_count2   0x000322    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-              set_cs_high   0x00001a    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+                 ADC_Read   0x0000dc    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\ADC.asm
+                ADC_Setup   0x0000ca    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\ADC.asm
+                DAC_setup   0x0005b4    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+                DAC_write   0x0005b4    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+                     DACs   0x0000e4    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\simple_dac.asm
+         LCD_Clear_Screen   0x0004c6    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+               LCD_Enable   0x000476    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+              LCD_Hex_Nib   0x0003f8    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+         LCD_Loop_message   0x00040e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+     LCD_Loop_message_new   0x000420    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+          LCD_Second_Line   0x0004d4    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+          LCD_Send_Byte_D   0x000454    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+          LCD_Send_Byte_I   0x000438    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+                LCD_Setup   0x000398    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+            LCD_Write_Hex   0x0003ee    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+        LCD_Write_Message   0x00040c    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+    LCD_Write_Message_new   0x00041a    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+                LCD_delay   0x0004bc    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+             LCD_delay_ms   0x00049a    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+           LCD_delay_x4us   0x0004a8    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+           LCD_second_new   0x000432    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+           SPI_MasterInit   0x000566    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+           SPI_MasterInit   0x00061e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
+          SPI_MasterInit2   0x00059e    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+        SPI_MasterReceive   0x00057e    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+       SPI_MasterTransmit   0x000574    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+       SPI_MasterTransmit   0x00062a    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
+      SPI_MasterTransmit2   0x0005aa    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+            Wait_Transmit   0x00062c    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
+            Wait_Transmit   0x000576    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+           Wait_Transmit2   0x0005ac    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+                Wait_read   0x000582    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+                 adc_loop   0x0000de    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\ADC.asm
+           authentication   0x000112    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+          authentication2   0x00011c    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+          authentication3   0x000126    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+          authentication4   0x000130    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                big_delay   0x00022a    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                      br1   0x0002dc    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                     br10   0x000336    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                     br11   0x000340    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                     br12   0x00034a    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                     br13   0x000354    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                     br14   0x00035e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                     br15   0x000368    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                      br2   0x0002e6    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                      br3   0x0002f0    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                      br4   0x0002fa    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                      br5   0x000304    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                      br6   0x00030e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                      br7   0x000318    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                      br8   0x000322    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                      br9   0x00032c    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+            byte_reversal   0x0005ee    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
+                    check   0x00026e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                   check2   0x0002a0    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                    clock   0x000634    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
+              conditional   0x00027c    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+             conditional2   0x0002ae    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+             counter24bit   0x000644    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+                     end1   0x00063a    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
+                     end1   0x000232    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+               hex_to_dec   0x000070    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+            incorrect_pin   0x000188    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+              init_chip_s   0x0004e2    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+        init_counter24bit   0x00063a    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+               keypad_LCD   0x0002ce    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+        keypad_LCD_secure   0x0002c6    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+      keypad_button_press   0x000378    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+             keypad_setup   0x000232    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+            keypad_setup2   0x00024c    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                   lcdlp1   0x0004be    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+                   lcdlp2   0x00049c    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+                     lock   0x00017e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                     loop   0x000610    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
+                mul_16x16   0x00002a    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+                 mul_8x16   0x000012    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+                 mul_8x24   0x000058    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+                     play   0x000170    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                    print   0x000372    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                     read   0x0001ee    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                    read2   0x000212    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+            read_sequence   0x000560    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+       read_sequence_init   0x000536    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+            record_column   0x00028a    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+           record_or_play   0x000154    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+               record_row   0x000258    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+            reset_counter   0x000598    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+                reversing   0x000602    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
+       second_byte_count1   0x000652    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+       second_byte_count2   0x000658    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+              set_cs_high   0x0004f6    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
                     start   0x000100    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
-                     temp   0x000316    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-                    temp1   0x000330    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-        third_byte_count1   0x000336    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-        third_byte_count2   0x00033c    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-                    write   0x000128    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
-           write_sequence   0x000054    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-      write_sequence_init   0x000020    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-                LCD_cnt_h   0x000005       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-                LCD_cnt_l   0x000004       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-               LCD_cnt_ms   0x000006       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-              LCD_counter   0x000008       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-             LCD_counter1   0x000009       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-              LCD_hex_tmp   0x000013       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-                  LCD_tmp   0x000007       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-                      ac1   0x00000d       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-                      ac2   0x00000e       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-                      ac3   0x00000f       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-                 ac_temp1   0x000010       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-                 ac_temp2   0x000011       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-                 ac_temp3   0x000012       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-           address_count1   0x00000b       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-           address_count2   0x00000c       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+                 sumHandJ   0x0002bc    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                     temp   0x00064c    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+                    temp1   0x000666    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+        third_byte_count1   0x00066c    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+        third_byte_count2   0x000672    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+             verification   0x00013a    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                    write   0x0001be    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+           write_sequence   0x000530    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+      write_sequence_init   0x0004fc    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+              write_start   0x00019a    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                LCD_cnt_h   0x000009       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+                LCD_cnt_l   0x000008       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+               LCD_cnt_ms   0x00000a       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+              LCD_counter   0x00000c       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+             LCD_counter1   0x00000d       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+              LCD_hex_tmp   0x00002a       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+                  LCD_tmp   0x00000b       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+               Mul_temp_1   0x000019       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+               Mul_temp_2   0x00001a       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+               Mul_temp_3   0x00001b       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+               Mul_temp_4   0x00001c       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+               Mul_temp_5   0x00001d       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+               Mul_temp_6   0x00001e       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+               Mul_temp_A   0x00001f       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+               Mul_temp_B   0x000020       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+               Mul_temp_C   0x000021       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+               Mul_temp_D   0x000022       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+               Mul_temp_E   0x000023       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+                      ac1   0x000013       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+                      ac2   0x000014       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+                      ac3   0x000015       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+                 ac_temp1   0x000016       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+                 ac_temp2   0x000017       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+                 ac_temp3   0x000018       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+           address_count1   0x00000f       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+           address_count2   0x000010       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
              byte_counter   0x000002       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
           byte_to_reverse   0x000000       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
-                  counter   0x00000a       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+               config_reg   0x000011       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+                  counter   0x00000e       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+                    dec_1   0x000024       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+                    dec_2   0x000025       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+                    dec_3   0x000026       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+                    dec_4   0x000027       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
               delay_count   0x000003       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                    key_c   0x000029       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                    key_r   0x000028       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                    pin_1   0x000004       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                    pin_2   0x000005       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                    pin_3   0x000006       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                    pin_4   0x000007       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
             reversed_byte   0x000001       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
+               temp_reg_1   0x000012       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
 
 
 
                               Symbols - Sorted by Address
                      Name    Address   Location    Storage File                     
                 ---------  ---------  ---------  --------- ---------                
-              init_chip_s   0x000006    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-              set_cs_high   0x00001a    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-      write_sequence_init   0x000020    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-           write_sequence   0x000054    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-       read_sequence_init   0x000062    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-            read_sequence   0x000088    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-           SPI_MasterInit   0x00008e    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-       SPI_MasterTransmit   0x00009c    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-            Wait_Transmit   0x00009e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-        SPI_MasterReceive   0x0000a6    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-                Wait_read   0x0000aa    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-            reset_counter   0x0000c0    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+                 mul_8x16   0x000012    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+                mul_16x16   0x00002a    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+                 mul_8x24   0x000058    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+               hex_to_dec   0x000070    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+                ADC_Setup   0x0000ca    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\ADC.asm
+                 ADC_Read   0x0000dc    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\ADC.asm
+                 adc_loop   0x0000de    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\ADC.asm
+                     DACs   0x0000e4    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\simple_dac.asm
                     start   0x000100    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
-                    write   0x000128    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
-                     read   0x000146    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
-                    read2   0x00014e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
-                big_delay   0x000166    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
-                     end1   0x00016e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
-                LCD_Setup   0x00016e    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-            LCD_Write_Hex   0x0001c4    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-              LCD_Hex_Nib   0x0001ce    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-        LCD_Write_Message   0x0001e2    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-         LCD_Loop_message   0x0001e4    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-    LCD_Write_Message_new   0x0001f0    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-     LCD_Loop_message_new   0x0001f6    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-           LCD_second_new   0x000208    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-          LCD_Send_Byte_I   0x00020e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-          LCD_Send_Byte_D   0x00022a    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-               LCD_Enable   0x00024c    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-             LCD_delay_ms   0x000270    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-                   lcdlp2   0x000272    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-           LCD_delay_x4us   0x00027e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-                LCD_delay   0x000292    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-                   lcdlp1   0x000294    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-         LCD_Clear_Screen   0x00029c    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-          LCD_Second_Line   0x0002aa    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-            byte_reversal   0x0002b8    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
-                reversing   0x0002cc    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
-                     loop   0x0002da    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
-           SPI_MasterInit   0x0002e8    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
-       SPI_MasterTransmit   0x0002f4    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
-            Wait_Transmit   0x0002f6    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
-                    clock   0x0002fe    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
-                     end1   0x000304    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
-        init_counter24bit   0x000304    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-             counter24bit   0x00030e    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-                     temp   0x000316    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-       second_byte_count1   0x00031c    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-       second_byte_count2   0x000322    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-                    temp1   0x000330    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-        third_byte_count1   0x000336    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-        third_byte_count2   0x00033c    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+           authentication   0x000112    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+          authentication2   0x00011c    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+          authentication3   0x000126    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+          authentication4   0x000130    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+             verification   0x00013a    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+           record_or_play   0x000154    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                     play   0x000170    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                     lock   0x00017e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+            incorrect_pin   0x000188    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+              write_start   0x00019a    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                    write   0x0001be    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                     read   0x0001ee    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                    read2   0x000212    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                big_delay   0x00022a    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                     end1   0x000232    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+             keypad_setup   0x000232    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+            keypad_setup2   0x00024c    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+               record_row   0x000258    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                    check   0x00026e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+              conditional   0x00027c    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+            record_column   0x00028a    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                   check2   0x0002a0    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+             conditional2   0x0002ae    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                 sumHandJ   0x0002bc    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+        keypad_LCD_secure   0x0002c6    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+               keypad_LCD   0x0002ce    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                      br1   0x0002dc    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                      br2   0x0002e6    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                      br3   0x0002f0    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                      br4   0x0002fa    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                      br5   0x000304    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                      br6   0x00030e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                      br7   0x000318    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                      br8   0x000322    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                      br9   0x00032c    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                     br10   0x000336    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                     br11   0x000340    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                     br12   0x00034a    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                     br13   0x000354    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                     br14   0x00035e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                     br15   0x000368    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                    print   0x000372    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+      keypad_button_press   0x000378    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                LCD_Setup   0x000398    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+            LCD_Write_Hex   0x0003ee    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+              LCD_Hex_Nib   0x0003f8    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+        LCD_Write_Message   0x00040c    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+         LCD_Loop_message   0x00040e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+    LCD_Write_Message_new   0x00041a    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+     LCD_Loop_message_new   0x000420    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+           LCD_second_new   0x000432    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+          LCD_Send_Byte_I   0x000438    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+          LCD_Send_Byte_D   0x000454    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+               LCD_Enable   0x000476    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+             LCD_delay_ms   0x00049a    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+                   lcdlp2   0x00049c    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+           LCD_delay_x4us   0x0004a8    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+                LCD_delay   0x0004bc    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+                   lcdlp1   0x0004be    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+         LCD_Clear_Screen   0x0004c6    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+          LCD_Second_Line   0x0004d4    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+              init_chip_s   0x0004e2    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+              set_cs_high   0x0004f6    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+      write_sequence_init   0x0004fc    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+           write_sequence   0x000530    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+       read_sequence_init   0x000536    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+            read_sequence   0x000560    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+           SPI_MasterInit   0x000566    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+       SPI_MasterTransmit   0x000574    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+            Wait_Transmit   0x000576    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+        SPI_MasterReceive   0x00057e    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+                Wait_read   0x000582    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+            reset_counter   0x000598    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+          SPI_MasterInit2   0x00059e    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+      SPI_MasterTransmit2   0x0005aa    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+           Wait_Transmit2   0x0005ac    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+                DAC_write   0x0005b4    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+                DAC_setup   0x0005b4    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+            byte_reversal   0x0005ee    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
+                reversing   0x000602    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
+                     loop   0x000610    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
+           SPI_MasterInit   0x00061e    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
+       SPI_MasterTransmit   0x00062a    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
+            Wait_Transmit   0x00062c    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
+                    clock   0x000634    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
+                     end1   0x00063a    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
+        init_counter24bit   0x00063a    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+             counter24bit   0x000644    program     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+                     temp   0x00064c    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+       second_byte_count1   0x000652    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+       second_byte_count2   0x000658    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+                    temp1   0x000666    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+        third_byte_count1   0x00066c    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+        third_byte_count2   0x000672    program     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
           byte_to_reverse   0x000000       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
             reversed_byte   0x000001       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
              byte_counter   0x000002       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\finger.asm
               delay_count   0x000003       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
-                LCD_cnt_l   0x000004       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-                LCD_cnt_h   0x000005       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-               LCD_cnt_ms   0x000006       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-                  LCD_tmp   0x000007       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-              LCD_counter   0x000008       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-             LCD_counter1   0x000009       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
-                  counter   0x00000a       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-           address_count1   0x00000b       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-           address_count2   0x00000c       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
-                      ac1   0x00000d       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-                      ac2   0x00000e       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-                      ac3   0x00000f       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-                 ac_temp1   0x000010       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-                 ac_temp2   0x000011       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-                 ac_temp3   0x000012       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
-              LCD_hex_tmp   0x000013       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+                    pin_1   0x000004       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                    pin_2   0x000005       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                    pin_3   0x000006       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                    pin_4   0x000007       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\Simple1.asm
+                LCD_cnt_l   0x000008       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+                LCD_cnt_h   0x000009       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+               LCD_cnt_ms   0x00000a       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+                  LCD_tmp   0x00000b       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+              LCD_counter   0x00000c       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+             LCD_counter1   0x00000d       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
+                  counter   0x00000e       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+           address_count1   0x00000f       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+           address_count2   0x000010       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+               config_reg   0x000011       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+               temp_reg_1   0x000012       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\external_memoy.asm
+                      ac1   0x000013       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+                      ac2   0x000014       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+                      ac3   0x000015       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+                 ac_temp1   0x000016       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+                 ac_temp2   0x000017       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+                 ac_temp3   0x000018       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\counter24b.asm
+               Mul_temp_1   0x000019       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+               Mul_temp_2   0x00001a       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+               Mul_temp_3   0x00001b       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+               Mul_temp_4   0x00001c       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+               Mul_temp_5   0x00001d       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+               Mul_temp_6   0x00001e       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+               Mul_temp_A   0x00001f       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+               Mul_temp_B   0x000020       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+               Mul_temp_C   0x000021       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+               Mul_temp_D   0x000022       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+               Mul_temp_E   0x000023       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+                    dec_1   0x000024       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+                    dec_2   0x000025       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+                    dec_3   0x000026       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+                    dec_4   0x000027       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\Multiplication.asm
+                    key_r   0x000028       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+                    key_c   0x000029       data     extern C:\Users\mik216\MPLABXProjects\Sec_dict.X\keypad.asm
+              LCD_hex_tmp   0x00002a       data     static C:\Users\mik216\MPLABXProjects\Sec_dict.X\LCD.asm
 
 

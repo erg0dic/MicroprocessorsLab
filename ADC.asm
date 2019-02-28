@@ -11,7 +11,7 @@ ADC_Setup
     movwf   ADCON0	    ; and turn ADC on
     movlw   0x30	    ; Select 4.096V positive reference
     movwf   ADCON1	    ; 0V for -ve reference and -ve input
-    movlw   0xF6	    ; Right justified output
+    movlw   0xDE	    ; left justified output ====> 0x76 for left, 0xF6 for right justified
     movwf   ADCON2	    ; Fosc/64 clock and acquisition times
     return
 

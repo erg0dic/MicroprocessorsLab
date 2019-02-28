@@ -1,4 +1,4 @@
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE  1
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE  1
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -18,210 +18,320 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00002     
   0000                00003     global  init_chip_s, write_sequence_init, write_sequence, set_cs_high, read_sequence_init, read_sequ
                             ence 
-  0000                00004     global  SPI_MasterInit, SPI_MasterTransmit, SPI_MasterReceive
+  0000                00004     global  SPI_MasterInit, SPI_MasterInit2, SPI_MasterTransmit2, SPI_MasterTransmit, SPI_MasterReceive
   0000                00005     global  counter, address_count1, address_count2
-  0000                00006     extern  LCD_delay_ms 
-                      00007     
-                      00008 acs0    udata_acs
-000000                00009 counter     res 1
-000001                00010 address_count1  res 1
-000002                00011 address_count2  res 1
-                      00012 
-                      00013     
-                      00014 memory_interface    code
-                      00015 
-                      00016    
-                      00017     
-000000                00018 init_chip_s
-000000 0EFD           00019         movlw   b'11111101'                 ; set RE1 tris to low so its the only output
-000002 6E96           00020         movwf   TRISE
-000004 0E02           00021         movlw   b'00000010'                 ; set RE1 to high and call a delay
-000006 6E84           00022         movwf   PORTE
-000008 0E0A           00023         movlw   .10
-00000A EC?? F???      00024         call    LCD_delay_ms    
-00000E 0E00           00025         movlw   0x00        ; set RE1 to low
-000010 6E84           00026         movwf   PORTE
-000012 0012           00027         return
-                      00028 
-                      00029 ;set_cs_low
-                      00030 ;       movlw   b'11111101'                 ; set RE1 tris to low so its the only output
-                      00031 ;       movwf   TRISE
-                      00032 ;       movlw   0x00                        ; set RE1 to high and call a delay
-                      00033 ;       movwf   PORTE   
-                      00034 
-000014                00035 set_cs_high
-000014 9296           00036         bcf     TRISE, 1                    ; set RE1 tris to low so its the only output
-000016 8284           00037         bsf     PORTE, 1                            ; set RE1 to high and call a delay  
-000018 0012           00038         return
-                      00039         
-00001A                00040 write_sequence_init
-                      00041 ;       movlw   b'11011111'                 ; set RC5 tris to low so its the only output
-                      00042 ;       movwf   TRISC   
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE  2
+  0000                00006     global  DAC_write, DAC_setup
+  0000                00007     extern  LCD_delay_ms, LCD_delay_x4us 
+                      00008     
+                      00009 acs0    udata_acs
+000000                00010 counter     res 1
+000001                00011 address_count1  res 1
+000002                00012 address_count2  res 1
+000003                00013 config_reg      res 1
+000004                00014 temp_reg_1      res 1    
+                      00015 memory_interface    code
+                      00016 
+                      00017    
+                      00018     
+000000                00019 init_chip_s
+000000 0EFD           00020         movlw   b'11111101'                 ; set RE1 tris to low so its the only output
+000002 6E96           00021         movwf   TRISE
+000004 0E02           00022         movlw   b'00000010'                 ; set RE1 to high and call a delay
+000006 6E84           00023         movwf   PORTE
+000008 0E01           00024         movlw   .1
+00000A EC?? F???      00025         call    LCD_delay_ms    
+00000E 0E00           00026         movlw   0x00        ; set RE1 to low
+000010 6E84           00027         movwf   PORTE
+000012 0012           00028         return
+                      00029 
+                      00030 ;set_cs_low
+                      00031 ;       movlw   b'11111101'                 ; set RE1 tris to low so its the only output
+                      00032 ;       movwf   TRISE
+                      00033 ;       movlw   0x00                        ; set RE1 to high and call a delay
+                      00034 ;       movwf   PORTE   
+                      00035 
+000014                00036 set_cs_high
+000014 9296           00037         bcf     TRISE, 1                    ; set RE1 tris to low so its the only output
+000016 8284           00038         bsf     PORTE, 1                            ; set RE1 to high and call a delay  
+000018 0012           00039         return
+                      00040         
+00001A                00041 write_sequence_init
+                      00042 ;       movlw   b'11011111'                 ; set RC5 tris to low so its the only output
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE  2
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00043 ;                       ; call parallel to serial conversion on port RC5
-                      00044         
-00001A EC?? F???      00045         call    init_chip_s
-00001E 0E02           00046         movlw   b'00000010'                 ; set RE1 to high and call a delay
-000020 6E84           00047         movwf   PORTE
-                      00048         
-000022 EC?? F???      00049         call    SPI_MasterInit
-                      00050         
-000026 EC?? F???      00051         call    init_chip_s
-00002A 0E06           00052         movlw   b'00000110'             ; Set write enable latch opcode to initialize writing into the e
+                      00043 ;       movwf   TRISC   
+                      00044 ;                       ; call parallel to serial conversion on port RC5
+                      00045         
+00001A EC?? F???      00046         call    init_chip_s
+00001E 0E02           00047         movlw   b'00000010'                 ; set RE1 to high and call a delay
+000020 6E84           00048         movwf   PORTE
+                      00049         
+000022 EC?? F???      00050         call    SPI_MasterInit
+                      00051         
+000026 EC?? F???      00052         call    init_chip_s
+00002A 0E06           00053         movlw   b'00000110'             ; Set write enable latch opcode to initialize writing into the e
                             xternal memory  
-00002C EC?? F???      00053         call    SPI_MasterTransmit      ; send serial data
-                      00054 
-                      00055 ;       call    set_cs_high
-                      00056         
-000030 EC?? F???      00057         call    init_chip_s   
-000034 0E02           00058         movlw   b'00000010'             ; write sequence starter
-000036 EC?? F???      00059         call    SPI_MasterTransmit
-                      00060         
+00002C EC?? F???      00054         call    SPI_MasterTransmit      ; send serial data
+                      00055 
+                      00056 ;       call    set_cs_high
+                      00057         
+000030 EC?? F???      00058         call    init_chip_s   
+000034 0E02           00059         movlw   b'00000010'             ; write sequence starter
+000036 EC?? F???      00060         call    SPI_MasterTransmit
                       00061         
-00003A 0E00           00062         movlw   0x00                            ;call   address where to store this is on memory
-00003C EC?? F???      00063         call    SPI_MasterTransmit
-000040 0E00           00064         movlw   0x00                            
-000042 EC?? F???      00065         call    SPI_MasterTransmit
-000046 0E00           00066         movlw   0x00                            
-000048 EC?? F???      00067         call    SPI_MasterTransmit
-                      00068         
-00004C 0012           00069         return
-                      00070         
-00004E                00071 write_sequence                  ; assumes a write sequence has been initialized
-00004E 5000           00072         movf    counter, 0, 0           ; check
-000050 4E00           00073         dcfsnz  counter, 1, 0
-000052 EC?? F???      00074         call    reset_counter
-                      00075         
+                      00062         
+00003A 0E00           00063         movlw   0x00                            ;call   address where to store this is on memory
+00003C EC?? F???      00064         call    SPI_MasterTransmit
+000040 0E00           00065         movlw   0x00                            
+000042 EC?? F???      00066         call    SPI_MasterTransmit
+000046 0E00           00067         movlw   0x00                            
+000048 EC?? F???      00068         call    SPI_MasterTransmit
+                      00069         
+00004C 0012           00070         return
+                      00071         
+00004E                00072 write_sequence                  ; assumes a write sequence has been initialized
+                      00073 ;       movf    counter, 0, 0           ; check
+                      00074 ;       dcfsnz  counter, 1, 0
+                      00075 ;       call    reset_counter
                       00076         
-                      00077 ;       movlw   0xAA
-000056 EC?? F???      00078         call    SPI_MasterTransmit      ; serial it and send it to external memory
-                      00079         
-                      00080 ;       call    set_cs_high             ; terminate the write sequence
-00005A 0012           00081         return  
-                      00082         
-00005C                00083 read_sequence_init
-                      00084 ;       movlw   b'11011111'                 ; set RC5 tris to low so its the only output
-                      00085 ;       movwf   TRISC   
-                      00086                         ; call parallel to serial conversion on port RC5
-00005C EC?? F???      00087         call    init_chip_s
-000060 0E02           00088         movlw   b'00000010'                 ; set RE1 to high and call a delay
-000062 6E84           00089         movwf   PORTE
-                      00090                         
-                      00091         ;call   SPI_MasterInit
-                      00092         
-000064 EC?? F???      00093         call    init_chip_s
-000068 0E03           00094         movlw   b'00000011'             ; Set write enable latch opcode to initialize writing into the e
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE  3
+                      00077         
+                      00078 ;       movlw   0xAA
+00004E EC?? F???      00079         call    SPI_MasterTransmit      ; serial it and send it to external memory
+                      00080         
+                      00081 ;       call    set_cs_high             ; terminate the write sequence
+000052 0012           00082         return  
+                      00083         
+000054                00084 read_sequence_init
+                      00085 ;       movlw   b'11011111'                 ; set RC5 tris to low so its the only output
+                      00086 ;       movwf   TRISC   
+                      00087                         ; call parallel to serial conversion on port RC5
+000054 EC?? F???      00088         call    init_chip_s
+000058 0E02           00089         movlw   b'00000010'                 ; set RE1 to high and call a delay
+00005A 6E84           00090         movwf   PORTE
+                      00091                         
+00005C EC?? F???      00092         call    SPI_MasterInit
+                      00093         
+000060 EC?? F???      00094         call    init_chip_s
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE  3
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+000064 0E03           00095         movlw   b'00000011'             ; Set write enable latch opcode to initialize writing into the e
                             xternal memory  
-00006A EC?? F???      00095         call    SPI_MasterTransmit      ; send serial data i.e. the READ opcode in serial form
-                      00096         
-                      00097 
+000066 EC?? F???      00096         call    SPI_MasterTransmit      ; send serial data i.e. the READ opcode in serial form
+                      00097         
                       00098 
-00006E 0E00           00099         movlw   0x00                            ;call   address where to store this is on memory
-000070 EC?? F???      00100         call    SPI_MasterTransmit
-000074 0E00           00101         movlw   0x00                            
-000076 EC?? F???      00102         call    SPI_MasterTransmit
-00007A 0E00           00103         movlw   0x00                            
-                      00104 
-00007C EC?? F???      00105         call    SPI_MasterTransmit
-                      00106 ;       call    SPI_MasterReceive
-                      00107 ;       call    SPI_MasterInitReceive           ; initialize the SPI to read data
-000080 0012           00108         return  
-                      00109 
-000082                00110 read_sequence               ; assumes the read and read sequence is initialized
-000082 EC?? F???      00111         call    SPI_MasterReceive           ; stores read byte in W
-                      00112 ;       movwf   0xA10, ACCESS
-                      00113 ;       movlw   0x00
-                      00114 ;       movwf   TRISH, ACCESS
-                      00115 ;       movff   0xA10, PORTH
-                      00116 ;       call    set_cs_high             ; terminate read
-000086 0012           00117         return
-                      00118         
-000088                00119 SPI_MasterInit ; Set Clock edge to negative
-000088 9CC7           00120         bcf     SSP1STAT, CKE       ; MSSP enable; CKP=1; SPI master, clock=Fosc/64 (1MHz)
-00008A 0E32           00121         movlw   (1<<SSPEN)|(1<<CKP)|(0x02)
-00008C 6EC6           00122         movwf   SSP1CON1                    ; SDO2 output; SCK2 output
-00008E 9A94           00123         bcf     TRISC, SDO1                 ; PORTC5
-000090 9694           00124         bcf     TRISC, SCK1                 ; PORTC3
-000092 8894           00125         bsf     TRISC, SDI1                 ; PORTC4    
-000094 0012           00126         return
-                      00127         
-000096                00128 SPI_MasterTransmit ; Start transmission of data (held in W)
-000096 6EC9           00129         movwf   SSP1BUF
-000098                00130 Wait_Transmit ; Wait for transmission to complete
-000098 A69E           00131         btfss   PIR1, SSP1IF
-00009A D???           00132         bra     Wait_Transmit
-00009C 969E           00133         bcf     PIR1, SSP1IF ; clear interrupt flag
-00009E 0012           00134         return  
-                      00135 
-                      00136         
-                      00137 
-0000A0                00138 SPI_MasterReceive
-0000A0 0E00           00139         movlw   0x00
-0000A2 6EC9           00140         movwf   SSP1BUF         ; receive data transmission
-                      00141 ;       movf    SSP1BUF, 0, 0           ; receive data transmission in W
-                      00142 ;       return
-0000A4                00143 Wait_read ; Wait for transmission to complete
-                      00144 ;       BTFSS SSP1STAT, BF ;Has data been received (transmit complete)?
-                      00145 ;       bra     Wait_read
-                      00146 ;       MOVF    SSP1BUF, 0
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE  4
+                      00099 
+00006A 0E00           00100         movlw   0x00                            ;call   address where to store this is on memory
+00006C EC?? F???      00101         call    SPI_MasterTransmit
+000070 0E00           00102         movlw   0x00                            
+000072 EC?? F???      00103         call    SPI_MasterTransmit
+000076 0E00           00104         movlw   0x00                            
+                      00105 
+000078 EC?? F???      00106         call    SPI_MasterTransmit
+                      00107 ;       call    SPI_MasterReceive
+                      00108 ;       call    SPI_MasterInitReceive           ; initialize the SPI to read data
+00007C 0012           00109         return  
+                      00110 
+00007E                00111 read_sequence               ; assumes the read and read sequence is initialized
+00007E EC?? F???      00112         call    SPI_MasterReceive           ; stores read byte in W
+                      00113 ;       movwf   0xA10, ACCESS
+                      00114 ;       movlw   0x00
+                      00115 ;       movwf   TRISH, ACCESS
+                      00116 ;       movff   0xA10, PORTH
+                      00117 ;       call    set_cs_high             ; terminate read
+000082 0012           00118         return
+                      00119         
+000084                00120 SPI_MasterInit ; Set Clock edge to negative
+000084 9CC7           00121         bcf     SSP1STAT, CKE       ; MSSP enable; CKP=1; SPI master, clock=Fosc/64 (1MHz)
+000086 0E32           00122         movlw   (1<<SSPEN)|(1<<CKP)|(0x02)
+000088 6EC6           00123         movwf   SSP1CON1                    ; SDO2 output; SCK2 output
+00008A 9A94           00124         bcf     TRISC, SDO1                 ; PORTC5
+00008C 9694           00125         bcf     TRISC, SCK1                 ; PORTC3
+00008E 8894           00126         bsf     TRISC, SDI1                 ; PORTC4    
+000090 0012           00127         return
+                      00128         
+000092                00129 SPI_MasterTransmit ; Start transmission of data (held in W)
+000092 6EC9           00130         movwf   SSP1BUF
+000094                00131 Wait_Transmit ; Wait for transmission to complete
+000094 A69E           00132         btfss   PIR1, SSP1IF
+000096 D???           00133         bra     Wait_Transmit
+000098 969E           00134         bcf     PIR1, SSP1IF ; clear interrupt flag
+00009A 0012           00135         return  
+                      00136 
+                      00137         
+                      00138 
+00009C                00139 SPI_MasterReceive
+00009C 0E00           00140         movlw   0x00
+00009E 6EC9           00141         movwf   SSP1BUF         ; receive data transmission
+                      00142 ;       movf    SSP1BUF, 0, 0           ; receive data transmission in W
+                      00143 ;       return
+0000A0                00144 Wait_read ; Wait for transmission to complete
+                      00145 ;       BTFSS SSP1STAT, BF ;Has data been received (transmit complete)?
+                      00146 ;       bra     Wait_read
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE  4
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00147         
-0000A4 A69E           00148         btfss   PIR1, SSP1IF
-0000A6 D???           00149         bra     Wait_read
-0000A8 0E00           00150         movlw   0x00
-0000AA 6E97           00151         movwf   TRISF
-0000AC 0E20           00152         movlw   b'00100000'
-0000AE 6E85           00153         movwf   PORTF
-0000B0 9A85           00154         bcf     PORTF, 5    
-0000B2 969E           00155         bcf     PIR1, SSP1IF ; clear interrupt flag
-0000B4 50C9           00156         movf    SSP1BUF , 0, 0
-0000B6 6E87           00157         movwf   PORTH
-0000B8 0012           00158         return          
-                      00159         
+                      00147 ;       MOVF    SSP1BUF, 0
+                      00148         
+0000A0 A69E           00149         btfss   PIR1, SSP1IF
+0000A2 D???           00150         bra     Wait_read
+0000A4 0E00           00151         movlw   0x00
+0000A6 6E97           00152         movwf   TRISF
+0000A8 0E20           00153         movlw   b'00100000'
+0000AA 6E85           00154         movwf   PORTF
+0000AC 9A85           00155         bcf     PORTF, 5    
+0000AE 969E           00156         bcf     PIR1, SSP1IF ; clear interrupt flag
+0000B0 50C9           00157         movf    SSP1BUF , 0, 0
+0000B2 6E87           00158         movwf   PORTH
+0000B4 0012           00159         return          
                       00160         
-0000BA                00161 reset_counter
-0000BA 0EFF           00162         movlw   0xFF
-0000BC 6E00           00163         movwf   counter, 0
-0000BE 0012           00164         return
-                      00165     
+                      00161         
+0000B6                00162 reset_counter
+0000B6 0EFF           00163         movlw   0xFF
+0000B8 6E00           00164         movwf   counter, 0
+0000BA 0012           00165         return
                       00166     
                       00167     
-                      00168     
-                      00169     
-                      00170     
-                      00171     
-                      00172     
-                      00173     
-                      00174     
-                      00175     
-                      00176     
-                      00177     
-                      00178     
-                      00179     
-                      00180     
-                      00181     
-                      00182     
-                      00183     
-                      00184     
-                      00185     
-                      00186     end
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE  5
+0000BC                00168 SPI_MasterInit2 ; Set Clock edge to negative
+0000BC 8C68           00169         bsf     SSP2STAT, CKE       ; MSSP enable; CKP=1; SPI master, clock=Fosc/64 (1MHz)
+0000BE 0E22           00170         movlw   (1<<SSPEN)|(0x02)
+0000C0 6E67           00171         movwf   SSP2CON1                    ; SDO2 output; SCK2 output
+0000C2 9895           00172         bcf     TRISD, SDO2                 ; PORTD4
+0000C4 9C95           00173         bcf     TRISD, SCK2                 ; PORTD6
+                      00174 ;       bsf     TRISC, SDI1                 ; PORTC4    
+0000C6 0012           00175         return
+                      00176         
+0000C8                00177 SPI_MasterTransmit2 ; Start transmission of data (held in W)
+0000C8 6E6A           00178         movwf   SSP2BUF
+0000CA                00179 Wait_Transmit2 ; Wait for transmission to complete
+0000CA AAA1           00180         btfss   PIR2, SSP2IF
+0000CC D???           00181         bra     Wait_Transmit2
+0000CE 9AA1           00182         bcf     PIR2, SSP2IF ; clear interrupt flag
+0000D0 0012           00183         return    
+                      00184         
+                      00185 
+0000D2                00186 DAC_setup
+                      00187 ;       bcf     TRISE, 3            ; set LDAC high
+                      00188 ;       bsf     PORTE, 3
+                      00189 ;       
+                      00190 ;       bcf     TRISE, 2            ; set RE2 as Chip select CS
+                      00191 ;       bsf     PORTE, 2            ; set RE2 high
+                      00192 ;;      movlw   .1
+                      00193 ;;      call    LCD_delay_x4us  
+                      00194 
+0000D2                00195 DAC_write
+0000D2 9696           00196         bcf     TRISE, 3            ; set LDAC high
+0000D4 8684           00197         bsf     PORTE, 3
+                      00198         
+0000D6 9496           00199         bcf     TRISE, 2            ; set RE2 as Chip select CS
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE  5
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0000D8 8484           00200         bsf     PORTE, 2            ; set RE2 high
+0000DA 0E03           00201         movlw   .3
+0000DC EC?? F???      00202         call    LCD_delay_x4us          
+                      00203         
+                      00204         
+                      00205         
+                      00206 
+0000E0 9484           00207         bcf     PORTE, 2            ; set CS low
+                      00208         
+                      00209 
+                      00210         
+                      00211         
+0000E2 0E10           00212         movlw   b'00010000'         ; configuration bits in W
+0000E4 6E??           00213         movwf   config_reg
+                      00214         
+0000E6 EC?? F???      00215         call    read_sequence       ; load right justified adc bits in W
+                      00216 ;       movlw   b'00001111'
+0000EA 2600           00217         addwf   config_reg, 1, 0    ; store high (config) and low nibble (data) ADDRESH high value
+                      00218 
+0000EC EC?? F???      00219         call    read_sequence
+                      00220 ;       movlw   b'11111111'     
+0000F0 2600           00221         addwf   temp_reg_1, 1, 0
+                      00222         
+0000F2 5000           00223         movf    config_reg, 0, 0
+0000F4 EC?? F???      00224         call    SPI_MasterTransmit2     ; send first byte
+                      00225         
+0000F8 5000           00226         movf    temp_reg_1, 0, 0        
+0000FA EC?? F???      00227         call    SPI_MasterTransmit2     ; send ADDRESL data to DAC
+                      00228 
+0000FE 9496           00229         bcf     TRISE, 2
+000100 8484           00230         bsf     PORTE, 2                ; set CS high
+                      00231         
+                      00232 ;       nop
+                      00233 ;       nop
+                      00234 ;       nop
+                      00235 ;       nop
+                      00236 ;       nop
+                      00237 ;       nop
+                      00238 ;       nop
+                      00239 ;       nop
+                      00240 ;       nop
+                      00241 ;       nop
+                      00242 ;       nop
+                      00243 ;       nop
+                      00244 ;       nop
+                      00245 
+                      00246         
+                      00247         
+                      00248         
+000102 9696           00249         bcf     TRISE, 3
+000104 9684           00250         bcf     PORTE, 3                ; set LDAC low
+                      00251 ;       movlw   .4
+                      00252 ;       call    LCD_delay_x4us
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE  6
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00253 ;       nop
+                      00254 ;       nop
+                      00255 ;       nop
+                      00256 ;       nop
+                      00257 ;       nop
+                      00258 ;       nop
+                      00259 ;       nop
+                      00260 ;       nop
+                      00261 ;       nop
+                      00262 ;       nop
+                      00263 ;       nop
+                      00264 ;       nop
+                      00265 ;       nop
+                      00266 
+                      00267         
+000106 9696           00268         bcf     TRISE, 3
+000108 8684           00269         bsf     PORTE, 3                ; pulse LDAC back to high
+                      00270         
+00010A 0012           00271         return
+                      00272     
+                      00273     
+                      00274     
+                      00275     
+                      00276 
+                      00277     
+                      00278     
+                      00279     
+                      00280     
+                      00281     
+                      00282     
+                      00283     
+                      00284     end
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE  7
 
 
 SYMBOL TABLE
@@ -280,7 +390,7 @@ ADMSK5                            00000005
 ADON                              00000000
 ADRES                             00000FC3
 ADRESH                            00000FC4
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE  6
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE  8
 
 
 SYMBOL TABLE
@@ -339,7 +449,7 @@ ANSEL16                           00000000
 ANSEL17                           00000001
 ANSEL18                           00000002
 ANSEL19                           00000003
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE  7
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE  9
 
 
 SYMBOL TABLE
@@ -398,7 +508,7 @@ C1TSEL0                           00000000
 C1TSEL1                           00000001
 C1TSEL2                           00000002
 C2INA                             00000004
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE  8
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 10
 
 
 SYMBOL TABLE
@@ -457,7 +567,7 @@ CCP1IP                            00000001
 CCP1M0                            00000000
 CCP1M1                            00000001
 CCP1M2                            00000002
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE  9
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 11
 
 
 SYMBOL TABLE
@@ -516,7 +626,7 @@ CCP5M0                            00000000
 CCP5M1                            00000001
 CCP5M2                            00000002
 CCP5M3                            00000003
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 10
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 12
 
 
 SYMBOL TABLE
@@ -575,7 +685,7 @@ CCP9IP                            00000006
 CCP9M0                            00000000
 CCP9M1                            00000001
 CCP9M2                            00000002
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 11
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 13
 
 
 SYMBOL TABLE
@@ -634,7 +744,7 @@ CHSN1                             00000001
 CHSN2                             00000002
 CK1                               00000006
 CK2                               00000001
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 12
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 14
 
 
 SYMBOL TABLE
@@ -693,7 +803,7 @@ CTMUIE                            00000003
 CTMUIF                            00000003
 CTMUIP                            00000003
 CTMUMD                            00000006
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 13
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 15
 
 
 SYMBOL TABLE
@@ -713,6 +823,8 @@ CVREN                             00000007
 CVROE                             00000006
 CVRSS                             00000005
 D                                 00000005
+DAC_setup                         000000D2
+DAC_write                         000000D2
 DATA_ADDRESS                      00000005
 DC                                00000001
 DC10B0                            00000004
@@ -750,14 +862,14 @@ ECCP1AS                           00000FBF
 ECCP1AS0                          00000004
 ECCP1AS1                          00000005
 ECCP1AS2                          00000006
-ECCP1ASE                          00000007
-ECCP1CON                          00000FBB
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 14
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 16
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+ECCP1ASE                          00000007
+ECCP1CON                          00000FBB
 ECCP1DEL                          00000FBE
 ECCP2AS                           00000F52
 ECCP2AS0                          00000004
@@ -809,14 +921,14 @@ FSR1L                             00000FE1
 FSR2                              00000002
 FSR2H                             00000FDA
 FSR2L                             00000FD9
-GCEN                              00000007
-GIE                               00000007
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 15
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 17
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+GCEN                              00000007
+GIE                               00000007
 GIEH                              00000007
 GIEL                              00000006
 GIE_GIEH                          00000007
@@ -868,14 +980,14 @@ INT3                              00000003
 INT3E                             00000005
 INT3F                             00000002
 INT3IE                            00000005
-INT3IF                            00000002
-INT3IP                            00000001
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 16
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 18
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+INT3IF                            00000002
+INT3IP                            00000001
 INT3P                             00000001
 INTCON                            00000FF2
 INTCON2                           00000FF1
@@ -927,14 +1039,14 @@ LATB5                             00000005
 LATB6                             00000006
 LATB7                             00000007
 LATC                              00000F8B
-LATC0                             00000000
-LATC1                             00000001
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 17
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 19
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+LATC0                             00000000
+LATC1                             00000001
 LATC2                             00000002
 LATC3                             00000003
 LATC4                             00000004
@@ -986,19 +1098,20 @@ LATJ                              00000F91
 LATJ0                             00000000
 LATJ1                             00000001
 LATJ2                             00000002
-LATJ3                             00000003
-LATJ4                             00000004
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 18
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 20
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+LATJ3                             00000003
+LATJ4                             00000004
 LATJ5                             00000005
 LATJ6                             00000006
 LATJ7                             00000007
 LB                                00000006
 LCD_delay_ms                      00000000
+LCD_delay_x4us                    00000000
 LVDIE                             00000002
 LVDIF                             00000002
 LVDIP                             00000002
@@ -1044,15 +1157,15 @@ OBF                               00000006
 ODCON1                            00000F29
 ODCON2                            00000F28
 ODCON3                            00000F27
-OE                                00000001
-OERR                              00000001
-OERR1                             00000001
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 19
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 21
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+OE                                00000001
+OERR                              00000001
+OERR1                             00000001
 OERR2                             00000001
 OSC1                              00000007
 OSC2                              00000006
@@ -1103,15 +1216,15 @@ P3DC4                             00000004
 P3DC5                             00000005
 P3DC6                             00000006
 P3M0                              00000006
-P3M1                              00000007
-P3RSEN                            00000007
-PA3                               00000000
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 20
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 22
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+P3M1                              00000007
+P3RSEN                            00000007
+PA3                               00000000
 PADCFG1                           00000F53
 PB1                               00000007
 PB3                               00000005
@@ -1162,15 +1275,15 @@ PORTH                             00000F87
 PORTJ                             00000F88
 POSTDEC0                          00000FED
 POSTDEC1                          00000FE5
-POSTDEC2                          00000FDD
-POSTINC0                          00000FEE
-POSTINC1                          00000FE6
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 21
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 23
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+POSTDEC2                          00000FDD
+POSTINC0                          00000FEE
+POSTINC1                          00000FE6
 POSTINC2                          00000FDE
 PR10                              00000F34
 PR12                              00000F31
@@ -1221,15 +1334,15 @@ RA0                               00000000
 RA1                               00000001
 RA2                               00000002
 RA3                               00000003
-RA4                               00000004
-RA5                               00000005
-RA6                               00000006
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 22
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 24
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+RA4                               00000004
+RA5                               00000005
+RA6                               00000006
 RA7                               00000007
 RB0                               00000000
 RB1                               00000001
@@ -1280,15 +1393,15 @@ RD2                               00000002
 RD3                               00000003
 RD4                               00000004
 RD5                               00000005
-RD6                               00000006
-RD7                               00000007
-RDPU                              00000007
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 23
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 25
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+RD6                               00000006
+RD7                               00000007
+RDPU                              00000007
 RE0                               00000000
 RE1                               00000001
 RE2                               00000002
@@ -1339,15 +1452,15 @@ RODIV2                            00000002
 RODIV3                            00000003
 ROON                              00000007
 ROSEL                             00000004
-ROSSLP                            00000005
-RSEN                              00000001
-RTCC                              00000004
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 24
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 26
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+ROSSLP                            00000005
+RSEN                              00000001
+RTCC                              00000004
 RTCCAL                            00000F5E
 RTCCFG                            00000F5F
 RTCCIE                            00000000
@@ -1398,15 +1511,15 @@ SENDB2                            00000003
 SMP                               00000007
 SOSCEN                            00000003
 SOSCGO                            00000003
-SOSCI                             00000001
-SOSCO                             00000000
-SOSCRUN                           00000006
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 25
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 27
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+SOSCI                             00000001
+SOSCO                             00000000
+SOSCRUN                           00000006
 SP0                               00000000
 SP1                               00000001
 SP2                               00000002
@@ -1422,9 +1535,11 @@ SPEN1                             00000007
 SPEN2                             00000007
 SPI1OD                            00000007
 SPI2OD                            00000000
-SPI_MasterInit                    00000088
-SPI_MasterReceive                 000000A0
-SPI_MasterTransmit                00000096
+SPI_MasterInit                    00000084
+SPI_MasterInit2                   000000BC
+SPI_MasterReceive                 0000009C
+SPI_MasterTransmit                00000092
+SPI_MasterTransmit2               000000C8
 SREN                              00000005
 SREN1                             00000005
 SREN2                             00000005
@@ -1455,17 +1570,17 @@ SSPBUF                            00000FC9
 SSPCON1                           00000FC6
 SSPCON2                           00000FC5
 SSPEN                             00000005
-SSPIE                             00000003
-SSPIF                             00000003
-SSPIP                             00000003
-SSPM0                             00000000
-SSPM1                             00000001
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 26
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 28
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+SSPIE                             00000003
+SSPIF                             00000003
+SSPIP                             00000003
+SSPM0                             00000000
+SSPM1                             00000001
 SSPM2                             00000002
 SSPM3                             00000003
 SSPOV                             00000006
@@ -1514,17 +1629,17 @@ T1CKI                             00000005
 T1CKPS0                           00000004
 T1CKPS1                           00000005
 T1CON                             00000FCD
-T1G                               00000005
-T1GCON                            00000FAA
-T1GGO                             00000003
-T1GGO_NOT_T1DONE                  00000003
-T1GPOL                            00000006
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 27
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 29
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+T1G                               00000005
+T1GCON                            00000FAA
+T1GGO                             00000003
+T1GGO_NOT_T1DONE                  00000003
+T1GPOL                            00000006
 T1GSPM                            00000004
 T1GSS0                            00000000
 T1GSS1                            00000001
@@ -1573,17 +1688,17 @@ T5GSS1                            00000001
 T5GTM                             00000005
 T5GVAL                            00000002
 T6CKPS0                           00000000
-T6CKPS1                           00000001
-T6CON                             00000F39
-T6OUTPS0                          00000003
-T6OUTPS1                          00000004
-T6OUTPS2                          00000005
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 28
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 30
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+T6CKPS1                           00000001
+T6CON                             00000F39
+T6OUTPS0                          00000003
+T6OUTPS1                          00000004
+T6OUTPS2                          00000005
 T6OUTPS3                          00000006
 T7CKI                             00000004
 T7CKPS0                           00000004
@@ -1632,17 +1747,17 @@ TMR12IF                           00000006
 TMR12IP                           00000006
 TMR12MD                           00000000
 TMR12ON                           00000002
-TMR1CS0                           00000006
-TMR1CS1                           00000007
-TMR1GE                            00000007
-TMR1GIE                           00000002
-TMR1GIF                           00000002
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 29
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 31
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+TMR1CS0                           00000006
+TMR1CS1                           00000007
+TMR1GE                            00000007
+TMR1GIE                           00000002
+TMR1GIF                           00000002
 TMR1GIP                           00000002
 TMR1H                             00000FCF
 TMR1IE                            00000000
@@ -1691,17 +1806,17 @@ TMR5IP                            00000001
 TMR5L                             00000F7C
 TMR5MD                            00000003
 TMR5ON                            00000000
-TMR6                              00000F3B
-TMR6IE                            00000002
-TMR6IF                            00000002
-TMR6IP                            00000002
-TMR6MD                            00000004
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 30
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 32
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+TMR6                              00000F3B
+TMR6IE                            00000002
+TMR6IF                            00000002
+TMR6IP                            00000002
+TMR6MD                            00000004
 TMR6ON                            00000002
 TMR7                              00000F3E
 TMR7CS0                           00000006
@@ -1750,17 +1865,17 @@ TRISB6                            00000006
 TRISB7                            00000007
 TRISC                             00000F94
 TRISC0                            00000000
-TRISC1                            00000001
-TRISC2                            00000002
-TRISC3                            00000003
-TRISC4                            00000004
-TRISC5                            00000005
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 31
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 33
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+TRISC1                            00000001
+TRISC2                            00000002
+TRISC3                            00000003
+TRISC4                            00000004
+TRISC5                            00000005
 TRISC6                            00000006
 TRISC7                            00000007
 TRISD                             00000F95
@@ -1809,17 +1924,17 @@ TRISJ0                            00000000
 TRISJ1                            00000001
 TRISJ2                            00000002
 TRISJ3                            00000003
-TRISJ4                            00000004
-TRISJ5                            00000005
-TRISJ6                            00000006
-TRISJ7                            00000007
-TRMT                              00000001
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 32
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 34
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+TRISJ4                            00000004
+TRISJ5                            00000005
+TRISJ6                            00000006
+TRISJ7                            00000007
+TRMT                              00000001
 TRMT1                             00000001
 TRMT2                             00000001
 TUN0                              00000000
@@ -1868,17 +1983,17 @@ ULPLVL                            00000005
 ULPSINK                           00000001
 ULPWU                             00000000
 VCFG0                             00000004
-VCFG1                             00000005
-VDIRMAG                           00000007
-VNCFG                             00000003
-VREF_MINUS                        00000002
-VREF_PLUS                         00000003
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 33
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 35
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+VCFG1                             00000005
+VDIRMAG                           00000007
+VNCFG                             00000003
+VREF_MINUS                        00000002
+VREF_PLUS                         00000003
 W                                 00000000
 WAIT0                             00000004
 WAIT1                             00000005
@@ -1893,8 +2008,9 @@ WRERR                             00000003
 WRH                               00000003
 WRL                               00000002
 WUE                               00000001
-Wait_Transmit                     00000098
-Wait_read                         000000A4
+Wait_Transmit                     00000094
+Wait_Transmit2                    000000CA
+Wait_read                         000000A0
 Z                                 00000002
 _ABW_MM_3L                        000000FF
 _ABW_XM12_3L                      000000EF
@@ -1926,18 +2042,18 @@ _CONFIG3H                         00300005
 _CONFIG3L                         00300004
 _CONFIG4L                         00300006
 _CONFIG5H                         00300009
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 36
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 _CONFIG5L                         00300008
 _CONFIG6H                         0030000B
 _CONFIG6L                         0030000A
 _CONFIG7H                         0030000D
 _CONFIG7L                         0030000C
 _CP0_OFF_5L                       000000FF
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 34
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 _CP0_ON_5L                        000000FE
 _CP1_OFF_5L                       000000FF
 _CP1_ON_5L                        000000FD
@@ -1985,18 +2101,18 @@ _ECCPMX_PORTE_3H                  000000FF
 _ECCPMX_PORTH_3H                  000000FD
 _FCMEN_OFF_1H                     000000BF
 _FCMEN_ON_1H                      000000FF
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 37
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 _FOSC_EC1IO_1H                    000000FC
 _FOSC_EC1_1H                      000000FD
 _FOSC_EC2IO_1H                    000000FA
 _FOSC_EC2_1H                      000000FB
 _FOSC_EC3IO_1H                    000000F4
 _FOSC_EC3_1H                      000000F5
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 35
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 _FOSC_HS1_1H                      000000F3
 _FOSC_HS2_1H                      000000F2
 _FOSC_INTIO1_1H                   000000F9
@@ -2044,18 +2160,18 @@ _WDTPS_1024_2H                    000000AB
 _WDTPS_1048576_2H                 000000FF
 _WDTPS_128_2H                     0000009F
 _WDTPS_131072_2H                  000000C7
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 38
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 _WDTPS_16384_2H                   000000BB
 _WDTPS_16_2H                      00000093
 _WDTPS_1_2H                       00000083
 _WDTPS_2048_2H                    000000AF
 _WDTPS_256_2H                     000000A3
 _WDTPS_262144_2H                  000000CB
-MPASM 5.81                EXTERNAL_MEMOY.ASM   2-21-2019  15:08:46         PAGE 36
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 _WDTPS_2_2H                       00000087
 _WDTPS_32768_2H                   000000BF
 _WDTPS_32_2H                      00000097
@@ -2094,13 +2210,21 @@ _XINST_ON_1L                      000000FF
 __18F87K22                        00000001
 address_count1                    00000001
 address_count2                    00000002
+config_reg                        00000003
 counter                           00000000
 init_chip_s                       00000000
-read_sequence                     00000082
-read_sequence_init                0000005C
-reset_counter                     000000BA
+read_sequence                     0000007E
+read_sequence_init                00000054
+reset_counter                     000000B6
 set_cs_high                       00000014
+temp_reg_1                        00000004
 write_sequence                    0000004E
+MPASM 5.81                EXTERNAL_MEMOY.ASM   2-27-2019  13:01:30         PAGE 39
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 write_sequence_init               0000001A
 
 Errors   :     0
