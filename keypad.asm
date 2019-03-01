@@ -58,13 +58,9 @@ conditional
 	subfwb	PORTD, 1, ACCESS    ; records the pressed bit
 	movlw	0x00
 	movwf	key_r, ACCESS	
-	movff	PORTD, key_r	    ; record in D
-;	movlw	0xF0			; set ports 4-7 to outputs (0s) and 0-3 as inputs (1s)
-;	movwf	TRISE, ACCESS		
+	movff	PORTD, key_r	    ; record in D		
 	return
-	
-	
-	
+		
 record_column
 	
 	movlw	0x00
@@ -88,34 +84,20 @@ check2
 conditional2	
 	movlw	0xF1		    ; 16  in W
 	subfwb	PORTD, 1, ACCESS    ; records the pressed bit
-
 	movlw	0x00
 	movwf	key_c, ACCESS
 	movff	PORTD, key_c
-;	movf	PORTH, 0, ACCESS
-;	addwf	PORTJ, 1, ACCESS
 	return
 
 	
-sumHandJ
+sumHandJ	    ; sum rows and columns, initially done on ports H and J hence the name
 	movlw	0x00
-;	movwf	0x00, ACCESS
-;	movf	PORTH, 0, 0
 	addwf	0x00,1, ACCESS
 	movf	key_c, 0, ACCESS
 	addwf	key_r, 1, ACCESS
-;	movlw	0x00
-;	movwf	TRISH, ACCESS
-;	movff	key_r, PORTH
-	return
-
-	
-keypad_LCD_secure
-	movlw	0x2A
-	call	LCD_Send_Byte_D
 	return
 	
-keypad_LCD
+keypad_LCD		    ; display correct numbers on LCD in terms of decoded Asciis of the keys pressed on keypad
 	call	LCD_Clear_Screen
 	
 	movlw	0x88
@@ -215,32 +197,18 @@ br15	movlw	0x11
 	bra	print
 
 print	
+	call	LCD_Send_Byte_D
+	return
+ 
 	
+keypad_LCD_secure		; display * instead of actual digits pressed on LCD when entering pin code!	    
+	movlw	0x2A
 	call	LCD_Send_Byte_D
 	return
 	
 	
-	;display
-;	movlw	0xF0
-;	movwf	PORTE, ACCESS
-    
-	;movlw	0xFF			; call long delay
-	;call	LCD_delay_ms
-	
-	
 
-	
-;read	movlw	0x00
-;	movwf	TRISD, ACCESS	
-;	movff	PORTE, PORTD
-;	return
-;read_1	movlw	    0x01
-;	subwf	    PORTD,1, ACCESS
-;	movff	    PORTE, PORTD    
-	
-    
-    
-keypad_button_press
+keypad_button_press		; a routine that records the correct key pressed on keypad and stores it in key_r register
 	call	keypad_setup
 	call	record_row
 	call	keypad_setup2
@@ -250,17 +218,6 @@ keypad_button_press
 	call	LCD_delay_ms
 	call	keypad_LCD_secure
 	return
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
 	end
 
