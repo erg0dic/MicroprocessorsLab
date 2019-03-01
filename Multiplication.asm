@@ -1,8 +1,7 @@
 #include p18f87k22.inc
 
-	global	mul_8x24, mul_16x16, mul_8x16, Mul_temp_1, Mul_temp_2, Mul_temp_3, Mul_temp_4, Mul_temp_5, Mul_temp_6
 	global	Mul_temp_A, Mul_temp_C, Mul_temp_B, Mul_temp_D, Mul_temp_E
-	global  hex_to_dec, dec_1, dec_2, dec_3, dec_4
+	global  hex_to_dec
     
 	extern  LCD_Write_Hex, LCD_Clear_Screen
     
