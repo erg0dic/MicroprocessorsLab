@@ -19,22 +19,6 @@ init_counter24bit
 	movwf	ac_temp3, 0
 	return
 
-;byte_counter_specific		    ; counts 
-;	movwf   ac_temp1, 0	    ; add the byte to ac_temp1 to 
-;	bra	
-;	decfsz	ac_temp2, 1, 0
-;	return	
-
-	
-;byte_counter_add		    ; assumes value to count down from is placed in W
-;;	movwf   ac_temp1, 0	    ; add the byte to ac_temp1 to 
-;;	movff	ac_temp1, ac_temp2, 0
-;;	decfsz	ac_temp2, 1, 0
-;;	return
-;	incf	ac_temp1, 1, 0
-	
-	    
-
 counter24bit	    		; initialize by adding some values to ac1, ac2, ac3 to count up to
 				; counter increments by 1 each time it is called
 ;	call	init_counter24bit
@@ -79,15 +63,6 @@ third_byte_count2
 	clrf	ac_temp2, 0	    ; reset lower byte counter 2 fow third byte
 	decf	ac1, 1, 0	    ; decrement most significant byte
 	return
-	
-;third_byte_count3
-;;	movlw	0x00
-;	addwfc	ac_temp3, 0	    ; clear carry bit
-;	clrf	ac_temp3, 0	    ; reset lower byte counter 2 fow third byte	
-;	decfsz	ac1, 1, 0	    ; decrement most significant byte
-;	return
-	
-	
 	
 ; now add the condition in simple one where writes are called
 ;   loop writes and just add 
